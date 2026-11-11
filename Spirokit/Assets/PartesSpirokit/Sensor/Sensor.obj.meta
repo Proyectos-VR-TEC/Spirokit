@@ -3,7 +3,22 @@ guid: 32543ab7de15713408165a742f662f73
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Acero_-_Satinado
+    second: {fileID: 2100000, guid: 69ed6d6263454614ebe8851e03d16ea7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Cuerpo1Mat
+    second: {fileID: 2100000, guid: dce2ecbc7ad99254ebeef43569887ea5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Cuerpo2Mat
+    second: {fileID: 2100000, guid: 7b2d90d3507081f47a7edc9bca43ac79, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

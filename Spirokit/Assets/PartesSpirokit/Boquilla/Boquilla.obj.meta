@@ -1,9 +1,19 @@
 fileFormatVersion: 2
-guid: 1783472a8d5e2244da69485717123825
+guid: 4937d3c3ae9e2004ab8c861ed3627d39
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Acero_-_Satinado
+    second: {fileID: 2100000, guid: 7ee8a07e2faf42a40b2f85d05a7c8c76, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Cuerpo1Mat
+    second: {fileID: 2100000, guid: fb8fec34b2c1d1546be15da6b7d9772e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
