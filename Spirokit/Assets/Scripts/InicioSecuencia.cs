@@ -12,6 +12,9 @@ public class RiseAndHologramSequence : MonoBehaviour
     public GameObject buttonToHide;        // the button that triggers this
     public float buttonShrinkDuration = 0.25f; // 0 = disappear instantly
 
+    [Header("Next step (optional)")]
+    public SparkleTrailChain chain;        // audio + sparkle trail chain, starts when the rise ends
+
     [Header("Rising object")]
     public Transform objectToRise;
     public float riseHeight = 1.5f;
@@ -79,6 +82,7 @@ public class RiseAndHologramSequence : MonoBehaviour
     {
         StopAllCoroutines();
         running = false;
+        if (chain) chain.ResetChain();
         if (buttonToHide)
         {
             if (buttonScale != Vector3.zero) buttonToHide.transform.localScale = buttonScale;
@@ -118,6 +122,8 @@ public class RiseAndHologramSequence : MonoBehaviour
 
         if (objectToRise) objectToRise.position = endPos;
         if (spotLight) spotLight.intensity = maxIntensity;
+
+        if (chain) chain.Begin(objectToRise);
         // 'running' stays true so the button can't be spammed; call ResetSequence() to replay.
     }
 
