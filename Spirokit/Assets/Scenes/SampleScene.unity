@@ -1958,6 +1958,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_HorizontalFit: 1
   m_VerticalFit: 0
+--- !u!1 &230736605
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 230736606}
+  m_Layer: 0
+  m_Name: AnchorMano2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &230736606
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 230736605}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 840287550}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &237400192
 GameObject:
   m_ObjectHideFlags: 0
@@ -2590,6 +2621,118 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 343067507}
   m_CullTransparentMesh: 1
+--- !u!1 &353859891
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 353859893}
+  - component: {fileID: 353859892}
+  m_Layer: 0
+  m_Name: DemoSecuenciaCalibracion
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &353859892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 353859891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95824676c12e4df49ba0ef68dfbf9e14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RobotDemoSequenceCalibracion
+  chain: {fileID: 1903602973}
+  autoStartAfterChain: 1
+  startDelay: 1.5
+  steps:
+  - name: Boquilla
+    piece: {fileID: 1452754412}
+    snapPoint: {fileID: 1512914754}
+    hands: 0
+    highlightLight: {fileID: 0}
+    highlightIntensity: 0
+    holdLocalPosition: {x: 0, y: 0, z: 0}
+    holdLocalEuler: {x: 0, y: 0, z: 0}
+    bothHandsGap: 0
+    approachDistance: 0
+    twistDegrees: 0
+    twistAxis: {x: 0, y: 0, z: 0}
+    stayAttached: 0
+    reachTrigger: 
+    carryTrigger: 
+    releaseTrigger: 
+  - name: Cuerpo Spirokit
+    piece: {fileID: 1204997414}
+    snapPoint: {fileID: 1952255513}
+    hands: 0
+    highlightLight: {fileID: 0}
+    highlightIntensity: 0
+    holdLocalPosition: {x: 0, y: 0, z: 0}
+    holdLocalEuler: {x: 0, y: 0, z: 0}
+    bothHandsGap: 0
+    approachDistance: 0
+    twistDegrees: 0
+    twistAxis: {x: 0, y: 0, z: 0}
+    stayAttached: 0
+    reachTrigger: 
+    carryTrigger: 
+    releaseTrigger: 
+  rightHand:
+    anchor: {fileID: 689025025}
+    root: {fileID: 1865831756}
+  leftHand:
+    anchor: {fileID: 230736606}
+    root: {fileID: 840287550}
+  scriptMovesHands: 1
+  handArcHeight: 0.15
+  highlightPause: 1.2
+  lightFadeDuration: 1
+  reachDuration: 1.5
+  grabDuration: 0.4
+  carryDuration: 2
+  alignDuration: 0.4
+  seatDuration: 0.5
+  returnDuration: 1.5
+  pauseBetweenSteps: 0.8
+  robotAnimator: {fileID: 0}
+  reachTrigger: 
+  carryTrigger: 
+  releaseTrigger: 
+  snapFlashLight: {fileID: 0}
+  snapFlashIntensity: 30
+  snapFlashDuration: 0.4
+  sfx: {fileID: 0}
+  grabClip: {fileID: 0}
+  snapClip: {fileID: 0}
+  onSequenceFinished:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!4 &353859893
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 353859891}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3, y: 0.96028, z: -1.13444}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1952255513}
+  - {fileID: 1512914754}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &358224100
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6043,6 +6186,37 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 3633865748600368068, guid: 00c9c177e828a57439e290aef2a23b3f, type: 3}
+--- !u!1 &689025024
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 689025025}
+  m_Layer: 0
+  m_Name: AnchorMano1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &689025025
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 689025024}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1865831756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &692397217
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7584,6 +7758,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 814950858}
   m_CullTransparentMesh: 1
+--- !u!4 &840287550 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2769979173508513528, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+  m_PrefabInstance: {fileID: 1397161120}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &841128059
 GameObject:
   m_ObjectHideFlags: 0
@@ -12412,7 +12591,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6254852114844529006, guid: 8bd967ee39d994d27bbaf85eb4974fe9, type: 3}
       propertyPath: m_Name
-      value: SM_LPI_Storage_Bookcase_01
+      value: EstanteObjetos
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12489,7 +12668,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 689025025}
+    - targetCorrespondingSourceObject: {fileID: -2769979173508513528, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 230736606}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
 --- !u!4 &1397161121 stripped
@@ -13991,6 +14176,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1510653519}
   m_CullTransparentMesh: 1
+--- !u!1 &1512914753
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1512914754}
+  m_Layer: 0
+  m_Name: SnapPointBoquilla
+  m_TagString: Untagged
+  m_Icon: {fileID: 5721338939258241955, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1512914754
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1512914753}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.036650002, z: 0.74108994}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 353859893}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1533437182
 GameObject:
   m_ObjectHideFlags: 0
@@ -16423,6 +16639,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7785151267686525226, guid: 048249d9a15aa3c459399751e860bde7, type: 3}
   m_PrefabInstance: {fileID: 1008793030}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &1865831756 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+  m_PrefabInstance: {fileID: 1397161120}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1870232604
 GameObject:
   m_ObjectHideFlags: 0
@@ -17563,6 +17784,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1949060115}
   m_CullTransparentMesh: 1
+--- !u!1 &1952255512
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1952255513}
+  m_Layer: 0
+  m_Name: SnapPointCuerpo
+  m_TagString: Untagged
+  m_Icon: {fileID: 5721338939258241955, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1952255513
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1952255512}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.036650002, z: 0.74108994}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 353859893}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1961494665
 GameObject:
   m_ObjectHideFlags: 0
@@ -21566,10 +21818,11 @@ SceneRoots:
   - {fileID: 1783572214}
   - {fileID: 1703568386}
   - {fileID: 2076065653}
+  - {fileID: 1738423939}
   - {fileID: 2053054131}
   - {fileID: 1722192498}
-  - {fileID: 1738423939}
-  - {fileID: 149019250}
-  - {fileID: 1462484776}
   - {fileID: 1397161120}
   - {fileID: 1392142582}
+  - {fileID: 1462484776}
+  - {fileID: 149019250}
+  - {fileID: 353859893}
