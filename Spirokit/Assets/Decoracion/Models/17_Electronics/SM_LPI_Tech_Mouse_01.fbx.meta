@@ -1,0 +1,58 @@
+fileFormatVersion: 2
+guid: 3c17944f3b2096c76e93a78e3305c358
+ModelImporter:
+  serializedVersion: 22200
+  internalIDToNameTable: []
+  externalObjects: {}
+  materials:
+    materialImportMode: 1
+    materialName: 1
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
+    importVisibility: 0
+    animationType: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 0
+    importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
+    swapUVChannels: 0
+    generateSecondaryUV: 1
+    strictVertexDataChecks: 0
+    weldVertices: 1
+    keepQuads: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  importAnimation: 0
+  importConstraints: 0
+  isReadable: 0
+  normalImportMode: 0
+  normalSmoothAngle: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 411314
+  packageName: 'DOLLHOUSE - FREE - Modular Low Poly Interiors: Furniture & Room Kit'
+  packageVersion: 1.0
+  assetPath: Assets/LowPolyInteriorsFree/Models/17_Electronics/SM_LPI_Tech_Mouse_01.fbx
+  uploadId: 1005282

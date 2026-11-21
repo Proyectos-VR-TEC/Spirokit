@@ -3,25 +3,34 @@ using UnityEngine;
 using TMPro;
 
 /// <summary>
-/// One button press -> object rises, spotlight glows in sync, holographic text appears on the wall.
+/// One button press -> several objects rise, spotlight glows in sync, holographic text appears on the wall.
 /// Hook Trigger() to your VR button (XR Simple Interactable > Select Entered, or a UI Button OnClick).
 /// </summary>
 public class RiseAndHologramSequence : MonoBehaviour
 {
+    [System.Serializable]
+    public class RisingObject
+    {
+        public Transform target;
+        public float riseHeight = 1.5f;
+        [Tooltip("Seconds to wait after the button press before this object starts rising.")]
+        public float startDelay = 0f;
+    }
+
     [Header("Button")]
     public GameObject buttonToHide;        // the button that triggers this
     public float buttonShrinkDuration = 0.25f; // 0 = disappear instantly
 
     [Header("Next step (optional)")]
     public SparkleTrailChain chain;        // audio + sparkle trail chain, starts when the rise ends
+    public Transform chainTarget;          // object the chain follows; defaults to the first rising object
 
-    [Header("Rising object")]
-    public Transform objectToRise;
-    public float riseHeight = 1.5f;
-    public float riseDuration = 4f;
+    [Header("Rising objects")]
+    public RisingObject[] objectsToRise;
+    public float riseDuration = 4f;        // duration of each individual object's rise
     public AnimationCurve riseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-    [Header("Spotlight (glows as the object rises)")]
+    [Header("Spotlight (glows as the objects rise)")]
     public Light spotLight;
     public float maxIntensity = 8f;
     public AnimationCurve glowCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
@@ -37,19 +46,28 @@ public class RiseAndHologramSequence : MonoBehaviour
     public float charactersPerSecond = 25f;
 
     bool running;
-    Vector3 startPos;
+    Vector3[] startPositions;
     Vector3 buttonScale;
     string fullText;
 
     void Awake()
     {
-        if (objectToRise) startPos = objectToRise.position;
+        CacheStartPositions();
         if (spotLight) spotLight.intensity = 0f;
         if (hologramText)
         {
             fullText = hologramText.text;
             SetHologramAlpha(0f);
         }
+    }
+
+    void CacheStartPositions()
+    {
+        int n = objectsToRise != null ? objectsToRise.Length : 0;
+        startPositions = new Vector3[n];
+        for (int i = 0; i < n; i++)
+            if (objectsToRise[i] != null && objectsToRise[i].target != null)
+                startPositions[i] = objectsToRise[i].target.position;
     }
 
     // Call this from the button.
@@ -88,7 +106,9 @@ public class RiseAndHologramSequence : MonoBehaviour
             if (buttonScale != Vector3.zero) buttonToHide.transform.localScale = buttonScale;
             buttonToHide.SetActive(true);
         }
-        if (objectToRise) objectToRise.position = startPos;
+        for (int i = 0; i < objectsToRise.Length; i++)
+            if (objectsToRise[i] != null && objectsToRise[i].target != null)
+                objectsToRise[i].target.position = startPositions[i];
         if (spotLight) spotLight.intensity = 0f;
         if (hologramText)
         {
@@ -104,27 +124,56 @@ public class RiseAndHologramSequence : MonoBehaviour
         // Hologram runs in parallel and keeps flickering after the fade-in.
         if (hologramText) StartCoroutine(Hologram());
 
-        // Rise + glow share the same progress value, so the light matches the height.
-        Vector3 endPos = startPos + Vector3.up * riseHeight;
-        float t = 0f;
-        while (t < 1f)
-        {
-            t += Time.deltaTime / Mathf.Max(0.01f, riseDuration);
-            float p = Mathf.Clamp01(t);
+        float duration = Mathf.Max(0.01f, riseDuration);
 
-            if (objectToRise)
-                objectToRise.position = Vector3.LerpUnclamped(startPos, endPos, riseCurve.Evaluate(p));
+        // Total time = longest start delay + one rise duration.
+        float maxDelay = 0f;
+        foreach (var item in objectsToRise)
+            if (item != null) maxDelay = Mathf.Max(maxDelay, item.startDelay);
+        float totalTime = maxDelay + duration;
+
+        // All objects share one clock; each one maps it to its own progress.
+        // The light follows overall progress, so it peaks when the last object arrives.
+        float elapsed = 0f;
+        while (elapsed < totalTime)
+        {
+            elapsed += Time.deltaTime;
+
+            for (int i = 0; i < objectsToRise.Length; i++)
+            {
+                var item = objectsToRise[i];
+                if (item == null || item.target == null) continue;
+
+                float p = Mathf.Clamp01((elapsed - item.startDelay) / duration);
+                Vector3 endPos = startPositions[i] + Vector3.up * item.riseHeight;
+                item.target.position = Vector3.LerpUnclamped(startPositions[i], endPos, riseCurve.Evaluate(p));
+            }
+
             if (spotLight)
-                spotLight.intensity = maxIntensity * glowCurve.Evaluate(p);
+                spotLight.intensity = maxIntensity * glowCurve.Evaluate(Mathf.Clamp01(elapsed / totalTime));
 
             yield return null;
         }
 
-        if (objectToRise) objectToRise.position = endPos;
+        // Snap to exact final values.
+        for (int i = 0; i < objectsToRise.Length; i++)
+        {
+            var item = objectsToRise[i];
+            if (item == null || item.target == null) continue;
+            item.target.position = startPositions[i] + Vector3.up * item.riseHeight;
+        }
         if (spotLight) spotLight.intensity = maxIntensity;
 
-        if (chain) chain.Begin(objectToRise);
+        if (chain) chain.Begin(GetChainTarget());
         // 'running' stays true so the button can't be spammed; call ResetSequence() to replay.
+    }
+
+    Transform GetChainTarget()
+    {
+        if (chainTarget) return chainTarget;
+        foreach (var item in objectsToRise)
+            if (item != null && item.target != null) return item.target;
+        return null;
     }
 
     IEnumerator Hologram()

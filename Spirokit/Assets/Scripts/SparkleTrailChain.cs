@@ -5,9 +5,9 @@ using UnityEngine.Events;
 /// <summary>
 /// Flow: the rising object finishes rising -> audio plays -> a sparkle flies from the rising object to
 /// station 0 while that station's light glows up. The active station pulses until the user touches it ->
-/// it moves to its Move Spot -> the sparkle flies from it to station 1 -> ... After the last station is
-/// touched, a finale lights up everything: all station lights, the room lights and a final light.
-/// Each station is touched via a StationTouchRelay.
+/// it moves to its Move Spot (and can resize on the way) -> the sparkle flies from it to station 1 -> ...
+/// After the last station is touched, a finale lights up everything: all station lights, the room lights
+/// and a final light. Each station is touched via a StationTouchRelay.
 /// </summary>
 public class SparkleTrailChain : MonoBehaviour
 {
@@ -24,6 +24,26 @@ public class SparkleTrailChain : MonoBehaviour
         public Transform moveSpot;
         [Tooltip("Hide this station until the sparkle starts flying to it.")]
         public bool startHidden;
+
+        [Header("Resize while moving to the Move Spot (optional)")]
+        [Tooltip("Tick to change the station's size while it travels to the Move Spot (works even without a Move Spot).")]
+        public bool resizeOnMove;
+        [Tooltip("ON: the station ends up with the Move Spot's local scale (scale the Move Spot object to the size you want, " +
+                 "and give it the same parent as the station so the scales are comparable). " +
+                 "OFF: uses the Scale Multiplier below.")]
+        public bool matchMoveSpotScale;
+        [Tooltip("Final size as a multiple of the station's original size. 0.5 = half size, 2 = double.")]
+        public float scaleMultiplier = 1f;
+
+        [Header("Rotate while moving to the Move Spot (optional)")]
+        [Tooltip("Tick to rotate the station while it travels to the Move Spot (works even without a Move Spot).")]
+        public bool rotateOnMove;
+        [Tooltip("ON: the station ends up with the Move Spot's rotation (rotate the Move Spot object to the orientation you want). " +
+                 "OFF: it spins by the Rotation Offset below.")]
+        public bool matchMoveSpotRotation;
+        [Tooltip("Extra rotation in degrees around the world axes, e.g. (0, 90, 0) turns it a quarter turn. " +
+                 "Values like 360 make a full spin during the move.")]
+        public Vector3 rotationOffset = Vector3.zero;
 
         [Header("Sparkle to this station (optional overrides)")]
         [Tooltip("Particle system used for the trail that flies TO this station. Empty = use the default Sparkle.")]
@@ -111,6 +131,7 @@ public class SparkleTrailChain : MonoBehaviour
     Transform startSource;                 // the rising object
     Vector3[] stationStartPositions;
     Vector3[] stationBaseScales;
+    Quaternion[] stationBaseRotations;
     float[] roomOriginalIntensities;
     int currentIndex = -1;                 // station the sparkle has reached and is waiting to be touched
     bool busy;
@@ -125,12 +146,14 @@ public class SparkleTrailChain : MonoBehaviour
         {
             stationStartPositions = new Vector3[stations.Length];
             stationBaseScales = new Vector3[stations.Length];
+            stationBaseRotations = new Quaternion[stations.Length];
             for (int i = 0; i < stations.Length; i++)
             {
                 if (stations[i] != null && stations[i].target)
                 {
                     stationStartPositions[i] = stations[i].target.position;
                     stationBaseScales[i] = stations[i].target.localScale;
+                    stationBaseRotations[i] = stations[i].target.rotation;
                 }
             }
         }
@@ -198,6 +221,7 @@ public class SparkleTrailChain : MonoBehaviour
                 {
                     stations[i].target.position = stationStartPositions[i];
                     stations[i].target.localScale = stationBaseScales[i];
+                    stations[i].target.rotation = stationBaseRotations[i];
                 }
             }
         }
@@ -252,18 +276,71 @@ public class SparkleTrailChain : MonoBehaviour
 
         Station s = stations[currentIndex];
 
-        // The touched station moves to its spot.
-        if (s.moveSpot)
+        // The touched station moves to its spot, resizing and rotating on the way if requested.
+        bool doMove = s.moveSpot != null;
+        bool doResize = s.resizeOnMove && s.target != null;
+        bool doRotate = s.rotateOnMove && s.target != null;
+        if (s.target && (doMove || doResize || doRotate))
         {
-            Vector3 from = s.target.position;
+            Vector3 fromPos = s.target.position;
+            Quaternion fromRot = s.target.rotation;
+
+            // Snapshot the destination ONCE. If the Move Spot is parented to the station (or to anything
+            // that moves, rotates or scales during the move), reading it every frame makes the station chase it.
+            Vector3 toPos = doMove ? s.moveSpot.position : fromPos;
+            bool matchRot = doRotate && s.matchMoveSpotRotation && s.moveSpot;
+            Quaternion toRot = matchRot ? s.moveSpot.rotation : fromRot;
+            Vector3 moveSpotScale = s.moveSpot ? s.moveSpot.localScale : Vector3.one;
+
+            if (doMove)
+            {
+                Debug.Log($"[SparkleTrailChain] Station {currentIndex} '{s.name}' moving from {fromPos} to Move Spot '{s.moveSpot.name}' at {toPos}");
+                if (s.moveSpot.IsChildOf(s.target))
+                    Debug.LogWarning($"[SparkleTrailChain] Move Spot '{s.moveSpot.name}' is a child of station '{s.target.name}'. Unparent it (or put it under a static object) so it doesn't move with the station.");
+            }
+
+            // A non-kinematic Rigidbody (or a grab interactable driving it) fights direct position changes.
+            Rigidbody rb = s.target.GetComponent<Rigidbody>();
+            bool rbWasKinematic = rb && rb.isKinematic;
+            if (rb) rb.isKinematic = true;
+            Vector3 fromScale = stationBaseScales[currentIndex];   // pulse is stopped, so this is the true size
+            Vector3 toScale = fromScale;
+            if (doResize)
+                toScale = (s.matchMoveSpotScale && s.moveSpot) ? moveSpotScale
+                                                                : fromScale * s.scaleMultiplier;
+
             float t = 0f;
             while (t < 1f)
             {
                 t += Time.deltaTime / Mathf.Max(0.01f, moveDuration);
-                s.target.position = Vector3.LerpUnclamped(from, s.moveSpot.position, moveCurve.Evaluate(Mathf.Clamp01(t)));
+                float k = moveCurve.Evaluate(Mathf.Clamp01(t));
+                if (doMove) s.target.position = Vector3.LerpUnclamped(fromPos, toPos, k);
+                if (doResize) s.target.localScale = Vector3.LerpUnclamped(fromScale, toScale, k);
+                if (doRotate)
+                    s.target.rotation = matchRot
+                        ? Quaternion.SlerpUnclamped(fromRot, toRot, k)
+                        : Quaternion.Euler(s.rotationOffset * k) * fromRot;   // scaled offset so 360 = full spin
                 yield return null;
             }
-            s.target.position = s.moveSpot.position;
+            if (doMove) s.target.position = toPos;
+            if (doResize) s.target.localScale = toScale;
+            if (doRotate)
+                s.target.rotation = matchRot ? toRot : Quaternion.Euler(s.rotationOffset) * fromRot;
+
+            if (rb) rb.isKinematic = rbWasKinematic;
+
+            // Diagnostic: where did the station really end up, and where is its visible mesh?
+            var rends = s.target.GetComponentsInChildren<Renderer>();
+            string meshInfo = "no renderers";
+            if (rends.Length > 0)
+            {
+                Bounds bounds = rends[0].bounds;
+                foreach (var r in rends) bounds.Encapsulate(r.bounds);
+                meshInfo = $"mesh center {bounds.center}, mesh size {bounds.size}";
+            }
+            Debug.Log($"[SparkleTrailChain] Station {currentIndex} '{s.name}' finished: pivot {s.target.position}, " +
+                      $"localScale {s.target.localScale} (original {stationBaseScales[currentIndex]}), " +
+                      $"rotation {s.target.rotation.eulerAngles}, {meshInfo}");
         }
 
         // Then the sparkle flies from it to the next station, or the finale begins.
