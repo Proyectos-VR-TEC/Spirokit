@@ -2,6 +2,7 @@
   "dependencies": {
     "com.unity.ai.assistant": "2.21.0-pre.2",
     "com.unity.ai.inference": "2.6.1",
+    "com.unity.cloud.gltfast": "6.21.0",
     "com.unity.feature.development": "1.0.2",
     "com.unity.inputsystem": "1.20.0",
     "com.unity.learn.iet-framework": "6.0.6",
