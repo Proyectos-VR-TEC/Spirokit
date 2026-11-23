@@ -24,7 +24,7 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.4056604, g: 0.4056604, b: 0.4056604, a: 1}
   m_AmbientGroundColor: {r: 1, g: 1, b: 1, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 3
   m_SubtractiveShadowColor: {r: 0, g: 0, b: 0, a: 1}
   m_SkyboxMaterial: {fileID: 2100000, guid: dbdcda1d47363f944b9979fd94156993, type: 2}
   m_HaloStrength: 0.5
@@ -350,9 +350,9 @@ Light:
   serializedVersion: 13
   m_Type: 0
   m_Color: {r: 0.90188676, g: 0.573083, b: 0.22291917, a: 1}
-  m_Intensity: 5
+  m_Intensity: 20
   m_Range: 20
-  m_SpotAngle: 64.06079
+  m_SpotAngle: 46.84925
   m_InnerSpotAngle: 34.600853
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
@@ -10338,10 +10338,10 @@ Light:
   serializedVersion: 13
   m_Type: 0
   m_Color: {r: 0.90188676, g: 0.573083, b: 0.22291917, a: 1}
-  m_Intensity: 5
+  m_Intensity: 20
   m_Range: 20
-  m_SpotAngle: 34.860912
-  m_InnerSpotAngle: 29.16068
+  m_SpotAngle: 29.87419
+  m_InnerSpotAngle: 27.15048
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
     m_Type: 2
@@ -13258,10 +13258,10 @@ Light:
   serializedVersion: 13
   m_Type: 0
   m_Color: {r: 0.90188676, g: 0.573083, b: 0.22291917, a: 1}
-  m_Intensity: 5
+  m_Intensity: 20
   m_Range: 20
   m_SpotAngle: 32.69683
-  m_InnerSpotAngle: 24.264482
+  m_InnerSpotAngle: 27.70679
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
     m_Type: 2
@@ -13838,10 +13838,10 @@ Light:
   serializedVersion: 13
   m_Type: 0
   m_Color: {r: 0.90188676, g: 0.573083, b: 0.22291917, a: 1}
-  m_Intensity: 5
+  m_Intensity: 20
   m_Range: 20
   m_SpotAngle: 29.874186
-  m_InnerSpotAngle: 27.150478
+  m_InnerSpotAngle: 27.15048
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
     m_Type: 2
@@ -19675,6 +19675,46 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.1197456
+      objectReference: {fileID: 0}
+    - target: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.1890959
+      objectReference: {fileID: 0}
+    - target: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1.0034827
+      objectReference: {fileID: 0}
+    - target: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.50306696
+      objectReference: {fileID: 0}
+    - target: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.5903024
+      objectReference: {fileID: 0}
+    - target: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.38230917
+      objectReference: {fileID: 0}
+    - target: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.502301
+      objectReference: {fileID: 0}
+    - target: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 12.114
+      objectReference: {fileID: 0}
+    - target: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 89.369
+      objectReference: {fileID: 0}
+    - target: {fileID: -5431332492792544068, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 101.895
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
       propertyPath: m_Name
       value: 'AsistenteRobot '
@@ -23901,6 +23941,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
+    - target: {fileID: -7520725811508555338, guid: e9c6258f57bcb8444b6825410c40f732, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 5cacd1493f81c4a4580b5b2dadfa4c40, type: 2}
     - target: {fileID: -6689036041284674117, guid: e9c6258f57bcb8444b6825410c40f732, type: 3}
       propertyPath: m_Name
       value: circular_showroom-001
@@ -25379,7 +25423,7 @@ MonoBehaviour:
   - name: Spirokit
     target: {fileID: 1204997414}
     light: {fileID: 512895728}
-    maxIntensity: 10
+    maxIntensity: 20
     moveSpot: {fileID: 741426843}
     startHidden: 0
     resizeOnMove: 1
@@ -25400,7 +25444,7 @@ MonoBehaviour:
   - name: BaseSpiro
     target: {fileID: 2135562541}
     light: {fileID: 811402880}
-    maxIntensity: 10
+    maxIntensity: 20
     moveSpot: {fileID: 1078571103}
     startHidden: 0
     resizeOnMove: 1
@@ -25421,7 +25465,7 @@ MonoBehaviour:
   - name: BoquillaSpiro
     target: {fileID: 1452754412}
     light: {fileID: 986154865}
-    maxIntensity: 10
+    maxIntensity: 20
     moveSpot: {fileID: 1257826124}
     startHidden: 0
     resizeOnMove: 1
@@ -25442,7 +25486,7 @@ MonoBehaviour:
   - name: EmboloSpiro
     target: {fileID: 873550018}
     light: {fileID: 805558982}
-    maxIntensity: 10
+    maxIntensity: 20
     moveSpot: {fileID: 1423092004}
     startHidden: 0
     resizeOnMove: 1
@@ -25463,7 +25507,7 @@ MonoBehaviour:
   - name: BombaSpiro
     target: {fileID: 125637114}
     light: {fileID: 61824561}
-    maxIntensity: 10
+    maxIntensity: 20
     moveSpot: {fileID: 488674368}
     startHidden: 0
     resizeOnMove: 1
