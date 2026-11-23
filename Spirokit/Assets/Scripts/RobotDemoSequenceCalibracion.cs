@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -11,8 +12,12 @@ using UnityEngine.Events;
 ///    All the motion is computed from the snap point's position, rotation and approach direction.
 ///
 /// 2) USER'S TURN: the snap points (each appears as a translucent ghost as soon as the robot has shown its piece) show where the pieces go,
-///    and a light glows on each real piece on the tray. The user grabs a piece (XR Grab Interactable) and lets go
+///    and each real piece on the tray glows. The user grabs a piece (XR Grab Interactable) and lets go
 ///    of it near its ghost: it slides in and clicks into place. A piece dropped far away glides back to the tray.
+///
+/// 3) FINALE (Merge And Float At End): once every piece is seated, the pieces become ONE object (they are put under a
+///    single parent) that floats slowly up and down. After a while a sound plays and On Finale Sound fires: that is
+///    the signal for the next script (e.g. LightsOutOnClick) to start.
 ///
 /// The snap points can (and should) be DISABLED in the scene: this script switches them on only when it needs them.
 ///
@@ -43,12 +48,10 @@ public class RobotDemoSequence : MonoBehaviour
         public Transform demoCopy;
 
         [Header("Lights on the piece")]
-        [Tooltip("Light near the piece. It glows while the demo shows the piece, fades afterwards, and (unless you set a " +
-                 "separate Guide Light) glows again in the user's turn until the piece is grabbed.")]
+        [Tooltip("Light near the piece. It glows while the robot's demo shows the piece and fades afterwards. " +
+                 "(In the user's turn the piece itself glows instead of a light, see Guide Glow Color.)")]
         public Light highlightLight;
-        [Tooltip("Optional separate light for the user's turn. Empty = the Highlight Light is used again.")]
-        public Light userGuideLight;
-        [Tooltip("Intensity of the Highlight Light and of the Guide Light.")]
+        [Tooltip("Intensity of the Highlight Light during the robot demo.")]
         public float highlightIntensity = 20f;
 
         [Header("How the piece is shown going in")]
@@ -141,7 +144,13 @@ public class RobotDemoSequence : MonoBehaviour
              "or the piece would link in as soon as it is grabbed. Letting go still uses each step's User Snap Radius.")]
     public float heldSnapRadius = 0.1f;
     public float guidePulseSpeed = 3f;
-    [Range(0f, 1f)] public float guidePulseAmount = 0.25f;
+    [Range(0f, 1f), Tooltip("How dim the glow gets at the bottom of each fade in / fade out. 0 = it fades out completely, 1 = steady glow with no fading.")]
+    public float guideGlowMinimum = 0f;
+    [Tooltip("In the user's turn each real piece on the tray glows (its material's emission pulses) until it is grabbed. " +
+             "This is the glow color; make it brighter (HDR intensity) for a stronger glow. Needs a material with an Emission property, e.g. URP Lit.")]
+    [ColorUsage(false, true)] public Color guideGlowColor = new Color(0.7f, 1.8f, 2f);
+    [Range(0f, 2f), Tooltip("Overall strength of the glow. Lower it if the glow is too strong (1 = the color as set above, 0.3 = much softer).")]
+    public float guideGlowStrength = 1f;
     [Tooltip("A piece let go far from the snap point glides back to the tray.")]
     public bool returnDroppedPieces = true;
     public float returnDelay = 1f;
@@ -149,6 +158,28 @@ public class RobotDemoSequence : MonoBehaviour
     public UnityEvent onUserTurnStarted;
     [Tooltip("Fires when the user has placed every piece.")]
     public UnityEvent onUserFinished;
+
+    [Header("Finale: merge, float, sound")]
+    [Tooltip("ON: when the user has placed every piece, the pieces become ONE object that floats slowly up and down, " +
+             "and after a while a sound plays.")]
+    public bool mergeAndFloatAtEnd = true;
+    [Tooltip("Optional: the object the pieces are put under to become one. Empty = a new empty object is created between the pieces. " +
+             "Note: pieces that were attached to a snap point (Stay Attached) are detached from it.")]
+    public Transform mergedRoot;
+    [Tooltip("Seconds after the last piece clicks in before the pieces become one and start floating.")]
+    public float mergeDelay = 1f;
+    [Tooltip("How far (meters) the merged object floats up and down.")]
+    public float mergedBobAmount = 0.03f;
+    [Tooltip("How fast it floats (higher = faster). 1 is slow and calm.")]
+    public float mergedBobSpeed = 1f;
+    [Tooltip("Seconds the floating takes to build up from standing still, so it starts gently.")]
+    public float mergedBobEaseIn = 2f;
+    [Tooltip("Seconds it floats before the sound suddenly plays.")]
+    public float floatBeforeSound = 4f;
+    [Tooltip("The sound that plays after the floating has started. It is also the signal for the next script.")]
+    public AudioClip finaleClip;
+    [Tooltip("Fires at the moment the finale sound plays. Hook the next script's Begin() here (LightsOutOnClick can also subscribe by itself).")]
+    public UnityEvent onFinaleSound;
 
     [Header("Robot Animator (optional)")]
     public Animator robotAnimator;
@@ -170,6 +201,11 @@ public class RobotDemoSequence : MonoBehaviour
     public UnityEvent onSequenceFinished;
 
     bool running;
+
+    // Finale: the object the pieces were merged under, and where it started floating from.
+    Transform mergedActive;
+    Vector3 mergedBasePos;
+    GameObject createdMergedRoot;
 
     // Original state of the real pieces (tray pose), captured when the sequence begins.
     Transform[] origParent;
@@ -195,6 +231,13 @@ public class RobotDemoSequence : MonoBehaviour
     // User's turn state
     bool[] seated, wasHeld, busy, guideOn;
     Behaviour[] grab;
+
+    // Glow on the real pieces (material instances, so the shared materials are never touched)
+    Material[][] glowMats;
+    Color[][] glowOrigColor;
+    bool[][] glowOrigKeyword;
+    float[] glowLevel;
+    bool[] glowActive;
     System.Reflection.PropertyInfo[] heldProp;
 
     void Awake()
@@ -227,7 +270,6 @@ public class RobotDemoSequence : MonoBehaviour
             var s = steps[i];
             if (s == null) continue;
             SetLight(s.highlightLight, 0f);
-            SetLight(s.userGuideLight, 0f);
 
             if (s.snapPoint)
             {
@@ -291,7 +333,6 @@ public class RobotDemoSequence : MonoBehaviour
                 if (rb) { rb.isKinematic = origKinematic[i]; rb.useGravity = origGravity[i]; }
                 if (grab != null && grab[i]) grab[i].enabled = false;
                 SetLight(s.highlightLight, 0f);
-                SetLight(s.userGuideLight, 0f);
                 if (demoCopies != null && demoCopies[i]) SetRenderers(demoCopies[i], false);
             }
         }
@@ -303,6 +344,15 @@ public class RobotDemoSequence : MonoBehaviour
             SetRenderers(s.snapPoint, false);
             if (snapWasActive != null && !snapWasActive[i]) s.snapPoint.gameObject.SetActive(false);   // disabled again, as in the scene
         }
+
+        // Pieces are already back under their original parents above; now the merged object goes away (or back to where it was).
+        if (mergedActive) mergedActive.position = mergedBasePos;
+        if (createdMergedRoot) Destroy(createdMergedRoot);
+        mergedActive = null;
+        createdMergedRoot = null;
+
+        if (glowMats != null)
+            for (int i = 0; i < glowMats.Length; i++) StopGlow(i);
 
         SetLight(snapFlashLight, 0f);
         if (sfx) sfx.Stop();
@@ -523,12 +573,18 @@ public class RobotDemoSequence : MonoBehaviour
         guideOn = new bool[n];
         grab = new Behaviour[n];
         heldProp = new System.Reflection.PropertyInfo[n];
+        glowMats = new Material[n][];
+        glowOrigColor = new Color[n][];
+        glowOrigKeyword = new bool[n][];
+        glowLevel = new float[n];
+        glowActive = new bool[n];
 
         for (int i = 0; i < n; i++)
         {
             var s = steps[i];
             if (s == null || !s.piece || !s.snapPoint) { seated[i] = true; continue; }
             PrepareUserPiece(i);
+            SetupGlow(i);
             guideOn[i] = true;
         }
 
@@ -579,6 +635,65 @@ public class RobotDemoSequence : MonoBehaviour
 
         PlayClip(allDoneClip);
         onUserFinished.Invoke();
+
+        if (mergeAndFloatAtEnd) yield return Finale();
+    }
+
+    // =====================================================================
+    //  PHASE 3: the pieces become one, float, and a sound signals the next script
+    // =====================================================================
+
+    IEnumerator Finale()
+    {
+        if (mergeDelay > 0f) yield return new WaitForSeconds(mergeDelay);
+
+        // 1. The pieces become ONE object: they all go under a single parent (world pose is kept).
+        Transform root = mergedRoot;
+        if (!root)
+        {
+            Vector3 center = Vector3.zero;
+            int count = 0;
+            foreach (var s in steps)
+                if (s != null && s.piece) { center += s.piece.position; count++; }
+            if (count > 0) center /= count;
+
+            createdMergedRoot = new GameObject("Assembled Object");
+            createdMergedRoot.transform.position = center;
+            root = createdMergedRoot.transform;
+        }
+        foreach (var s in steps)
+            if (s != null && s.piece) s.piece.SetParent(root, true);
+
+        // 2. It floats slowly up and down.
+        mergedActive = root;
+        mergedBasePos = root.position;
+        StartCoroutine(FloatMerged(root));
+        Debug.Log($"[RobotDemoSequence] Finale: the pieces are now one object ('{root.name}') and floating. The sound plays in {floatBeforeSound} s.");
+
+        // 3. After a while, suddenly: the sound (and the signal for the next script).
+        yield return new WaitForSeconds(Mathf.Max(0f, floatBeforeSound));
+        if (!finaleClip)
+            Debug.LogWarning("[RobotDemoSequence] Finale Clip is empty, so there is no sound (the signal for the next script still fires). Assign a clip.");
+        else if (sfx)
+            sfx.PlayOneShot(finaleClip);
+        else
+            AudioSource.PlayClipAtPoint(finaleClip, root.position);   // no Sfx AudioSource assigned: play it right at the merged object
+        Debug.Log("[RobotDemoSequence] Finale sound + On Finale Sound event.");
+        onFinaleSound.Invoke();
+    }
+
+    // Gentle floating up and down; it builds up from standing still. Runs until ResetSequence().
+    IEnumerator FloatMerged(Transform root)
+    {
+        Vector3 basePos = root.position;
+        float t0 = Time.time;
+        while (root)
+        {
+            float t = Time.time - t0;
+            float ease = mergedBobEaseIn > 0f ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / mergedBobEaseIn)) : 1f;
+            root.position = basePos + Vector3.up * Mathf.Sin(t * mergedBobSpeed) * mergedBobAmount * ease;
+            yield return null;
+        }
     }
 
     // Makes the real piece grabbable: touch components off, grab interactable on, no gravity.
@@ -704,21 +819,66 @@ public class RobotDemoSequence : MonoBehaviour
         return (bool)pr.GetValue(b, null);
     }
 
-    // Light on the real piece: pulses while waiting to be grabbed, fades out otherwise.
+    // Collects material instances of the real piece that have an emission property, remembering their original emission.
+    void SetupGlow(int i)
+    {
+        var mats = new List<Material>();
+        foreach (var r in steps[i].piece.GetComponentsInChildren<Renderer>(true))
+            foreach (var m in r.materials)   // .materials gives instances, so shared materials stay untouched
+                if (m && m.HasProperty("_EmissionColor")) mats.Add(m);
+
+        glowMats[i] = mats.ToArray();
+        glowOrigColor[i] = new Color[mats.Count];
+        glowOrigKeyword[i] = new bool[mats.Count];
+        for (int k = 0; k < mats.Count; k++)
+        {
+            glowOrigColor[i][k] = mats[k].GetColor("_EmissionColor");
+            glowOrigKeyword[i][k] = mats[k].IsKeywordEnabled("_EMISSION");
+        }
+
+        if (mats.Count == 0)
+            Debug.LogWarning($"[RobotDemoSequence] Piece '{steps[i].piece.name}' has no material with an Emission property " +
+                             "(e.g. URP Unlit has none), so it can't glow. Use a Lit material on it.");
+    }
+
+    // The real piece glows (its emission pulses) while waiting to be grabbed, and fades back to normal otherwise.
     void ApplyGuide(int i, bool on)
     {
-        Step s = steps[i];
-        Light l = s.userGuideLight ? s.userGuideLight : s.highlightLight;
-        if (!l) return;
+        if (glowMats == null || glowMats[i] == null || glowMats[i].Length == 0) return;
 
-        float baseI = Mathf.Max(0.01f, s.highlightIntensity);
-        float target = on ? baseI * (1f + guidePulseAmount * Mathf.Sin(Time.time * guidePulseSpeed)) : 0f;
-        if (on && l.intensity < 0.01f)
+        glowLevel[i] = Mathf.MoveTowards(glowLevel[i], on ? 1f : 0f, Time.deltaTime / Mathf.Max(0.05f, lightFadeDuration));
+        if (glowLevel[i] <= 0.001f)
         {
-            if (!l.gameObject.activeSelf) l.gameObject.SetActive(true);
-            l.enabled = true;
+            if (glowActive[i]) StopGlow(i);
+            return;
         }
-        l.intensity = Mathf.MoveTowards(l.intensity, target, baseI * Time.deltaTime / Mathf.Max(0.05f, lightFadeDuration));
+
+        // Fades in and out between the minimum and full glow, on the same beat as the ghosts' pulse.
+        float wave = 0.5f + 0.5f * Mathf.Sin(Time.time * guidePulseSpeed);
+        float pulse = Mathf.Lerp(guideGlowMinimum, 1f, wave);
+        glowActive[i] = true;
+        for (int k = 0; k < glowMats[i].Length; k++)
+        {
+            var m = glowMats[i][k];
+            if (!m) continue;
+            m.EnableKeyword("_EMISSION");
+            m.SetColor("_EmissionColor", glowOrigColor[i][k] + guideGlowColor * (glowLevel[i] * pulse * guideGlowStrength));
+        }
+    }
+
+    // Puts the piece's emission back exactly as it was.
+    void StopGlow(int i)
+    {
+        if (glowMats == null || i >= glowMats.Length || glowMats[i] == null) return;
+        glowLevel[i] = 0f;
+        glowActive[i] = false;
+        for (int k = 0; k < glowMats[i].Length; k++)
+        {
+            var m = glowMats[i][k];
+            if (!m) continue;
+            m.SetColor("_EmissionColor", glowOrigColor[i][k]);
+            if (!glowOrigKeyword[i][k]) m.DisableKeyword("_EMISSION");
+        }
     }
 
     // The user let go near the ghost: the piece slides in and clicks, like the robot's copy did.
@@ -742,6 +902,7 @@ public class RobotDemoSequence : MonoBehaviour
         if (s.snapPointIsGhost) SetRenderers(s.snapPoint, false);   // before reparenting, so the piece stays visible
         if (s.stayAttached) p.SetParent(s.snapPoint, true);
 
+        StopGlow(i);
         seated[i] = true;
         busy[i] = false;
     }
