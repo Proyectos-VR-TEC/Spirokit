@@ -16,8 +16,9 @@ using UnityEngine.Events;
 ///    of it near its ghost: it slides in and clicks into place. A piece dropped far away glides back to the tray.
 ///
 /// 3) FINALE (Merge And Float At End): once every piece is seated, the pieces become ONE object (they are put under a
-///    single parent) that floats slowly up and down. After a while a sound plays and On Finale Sound fires: that is
-///    the signal for the next script (e.g. LightsOutOnClick) to start.
+///    single parent) that floats slowly up and down. After a while the Finale Sound Object (a DISABLED object with an
+///    AudioSource, placed where the sound should come from) is switched on, so the sound plays from its position, and
+///    On Finale Sound fires: that is the signal for the next script (e.g. LightsOutOnClick) to start.
 ///
 /// The snap points can (and should) be DISABLED in the scene: this script switches them on only when it needs them.
 ///
@@ -143,6 +144,12 @@ public class RobotDemoSequence : MonoBehaviour
     [Tooltip("Distance (meters) from the snap point at which a HELD piece links in. Keep it smaller than the distance between the tray and the ghost, " +
              "or the piece would link in as soon as it is grabbed. Letting go still uses each step's User Snap Radius.")]
     public float heldSnapRadius = 0.1f;
+    [Tooltip("SNAP ASSIST: any piece that gets within this distance (meters) of its snap point links in by itself, held or let go. " +
+             "The bigger of this and Held Snap Radius / the step's User Snap Radius is used, so it only makes snapping easier. " +
+             "Make it bigger if it is still hard; keep it smaller than the distance between the tray and the ghost.")]
+    public float snapAssistRadius = 0.35f;
+    [Tooltip("A piece has to be held this many seconds before it can link in while held, so it doesn't snap the instant it is grabbed.")]
+    public float minHeldSecondsBeforeSnap = 0.25f;
     public float guidePulseSpeed = 3f;
     [Range(0f, 1f), Tooltip("How dim the glow gets at the bottom of each fade in / fade out. 0 = it fades out completely, 1 = steady glow with no fading.")]
     public float guideGlowMinimum = 0f;
@@ -176,10 +183,35 @@ public class RobotDemoSequence : MonoBehaviour
     public float mergedBobEaseIn = 2f;
     [Tooltip("Seconds it floats before the sound suddenly plays.")]
     public float floatBeforeSound = 4f;
-    [Tooltip("The sound that plays after the floating has started. It is also the signal for the next script.")]
-    public AudioClip finaleClip;
+    [Tooltip("An object with an AudioSource (clip assigned), DISABLED in the scene and placed where the sound should come from. " +
+             "It is switched on after the floating has started, so the sound comes from its position (set the AudioSource's Spatial Blend to 1 for 3D). " +
+             "It is also the signal for the next script.")]
+    public GameObject finaleSoundObject;
     [Tooltip("Fires at the moment the finale sound plays. Hook the next script's Begin() here (LightsOutOnClick can also subscribe by itself).")]
     public UnityEvent onFinaleSound;
+
+    [Header("Finale: move to another object")]
+    [Tooltip("Optional: where the floating (merged) object goes at the end. An empty object placed exactly where you want it, " +
+             "or any other object: the merged object moves to its position. Empty = it just stays where it is, floating.")]
+    public Transform mergedMoveTarget;
+    [Tooltip("Seconds after the finale sound (and On Finale Sound) before it starts moving.")]
+    public float mergedMoveDelay = 2f;
+    [Tooltip("Seconds the move takes.")]
+    public float mergedMoveDuration = 2.5f;
+    [Tooltip("ON: it also turns to match the target's rotation. OFF: it keeps its own rotation.")]
+    public bool mergedMoveMatchRotation = false;
+    [Tooltip("ROTATE: extra turn (degrees on X, Y, Z) it ends up with once it has moved, e.g. (0, 90, 0) = a quarter turn around Y. " +
+             "It turns smoothly while it moves. It is added on top of its own rotation (or the target's, if Match Rotation is ON). 0,0,0 = no extra turn.")]
+    public Vector3 mergedMoveRotation = Vector3.zero;
+    [Tooltip("ON: it also takes the target's size. OFF: it keeps its own size.")]
+    public bool mergedMoveMatchScale = false;
+    [Min(0.01f), Tooltip("RESIZE: the size it ends up with once it has moved, as a multiplier. 1 = same size, 0.5 = half, 2 = double. " +
+             "It grows or shrinks smoothly while it moves. If Match Scale is ON, this multiplies the target's size instead.")]
+    public float mergedMoveSize = 1f;
+    [Tooltip("ON: once it has arrived it keeps floating gently up and down at the new place. OFF: it stays still there.")]
+    public bool mergedKeepFloating = true;
+    [Tooltip("Fires when the merged object has arrived at the target.")]
+    public UnityEvent onMergedArrived;
 
     [Header("Robot Animator (optional)")]
     public Animator robotAnimator;
@@ -205,6 +237,9 @@ public class RobotDemoSequence : MonoBehaviour
     // Finale: the object the pieces were merged under, and where it started floating from.
     Transform mergedActive;
     Vector3 mergedBasePos;
+    Quaternion mergedBaseRot;
+    Vector3 mergedBaseScale;
+    Coroutine floatRoutine;
     GameObject createdMergedRoot;
 
     // Original state of the real pieces (tray pose), captured when the sequence begins.
@@ -230,6 +265,7 @@ public class RobotDemoSequence : MonoBehaviour
 
     // User's turn state
     bool[] seated, wasHeld, busy, guideOn;
+    float[] heldTimer;
     Behaviour[] grab;
 
     // Glow on the real pieces (material instances, so the shared materials are never touched)
@@ -346,16 +382,29 @@ public class RobotDemoSequence : MonoBehaviour
         }
 
         // Pieces are already back under their original parents above; now the merged object goes away (or back to where it was).
-        if (mergedActive) mergedActive.position = mergedBasePos;
+        if (mergedActive)
+        {
+            mergedActive.position = mergedBasePos;
+            mergedActive.rotation = mergedBaseRot;
+            mergedActive.localScale = mergedBaseScale;
+        }
         if (createdMergedRoot) Destroy(createdMergedRoot);
         mergedActive = null;
         createdMergedRoot = null;
+        floatRoutine = null;
 
         if (glowMats != null)
             for (int i = 0; i < glowMats.Length; i++) StopGlow(i);
 
         SetLight(snapFlashLight, 0f);
         if (sfx) sfx.Stop();
+
+        if (finaleSoundObject)
+        {
+            var fsrc = finaleSoundObject.GetComponentInChildren<AudioSource>(true);
+            if (fsrc) fsrc.Stop();
+            finaleSoundObject.SetActive(false);   // disabled again, as in the scene
+        }
     }
 
     void CaptureOriginals()
@@ -571,6 +620,7 @@ public class RobotDemoSequence : MonoBehaviour
         wasHeld = new bool[n];
         busy = new bool[n];
         guideOn = new bool[n];
+        heldTimer = new float[n];
         grab = new Behaviour[n];
         heldProp = new System.Reflection.PropertyInfo[n];
         glowMats = new Material[n][];
@@ -611,7 +661,7 @@ public class RobotDemoSequence : MonoBehaviour
                 {
                     // Let go: close enough to the ghost = it slides in, otherwise it glides back to the tray.
                     float d = Vector3.Distance(s.piece.position, s.snapPoint.position);
-                    if (d <= s.userSnapRadius) StartCoroutine(SeatUserPiece(i));
+                    if (d <= Mathf.Max(s.userSnapRadius, snapAssistRadius)) StartCoroutine(SeatUserPiece(i));
                     else if (returnDroppedPieces) StartCoroutine(ReturnToTray(i));
                     else guideOn[i] = true;
                 }
@@ -624,9 +674,12 @@ public class RobotDemoSequence : MonoBehaviour
                         var heldRb = s.piece.GetComponent<Rigidbody>();
                         if (heldRb && !heldRb.isKinematic) heldRb.angularVelocity = Vector3.zero;
                     }
-                    if (snapWhileHeld && Vector3.Distance(s.piece.position, s.snapPoint.position) <= heldSnapRadius)
+                    heldTimer[i] += Time.deltaTime;
+                    if (snapWhileHeld && heldTimer[i] >= minHeldSecondsBeforeSnap &&
+                        Vector3.Distance(s.piece.position, s.snapPoint.position) <= Mathf.Max(heldSnapRadius, snapAssistRadius))
                         StartCoroutine(SeatUserPiece(i));
                 }
+                else heldTimer[i] = 0f;
                 wasHeld[i] = held;
             }
             if (allDone) break;
@@ -667,19 +720,65 @@ public class RobotDemoSequence : MonoBehaviour
         // 2. It floats slowly up and down.
         mergedActive = root;
         mergedBasePos = root.position;
-        StartCoroutine(FloatMerged(root));
+        mergedBaseRot = root.rotation;
+        mergedBaseScale = root.localScale;
+        floatRoutine = StartCoroutine(FloatMerged(root));
         Debug.Log($"[RobotDemoSequence] Finale: the pieces are now one object ('{root.name}') and floating. The sound plays in {floatBeforeSound} s.");
 
         // 3. After a while, suddenly: the sound (and the signal for the next script).
         yield return new WaitForSeconds(Mathf.Max(0f, floatBeforeSound));
-        if (!finaleClip)
-            Debug.LogWarning("[RobotDemoSequence] Finale Clip is empty, so there is no sound (the signal for the next script still fires). Assign a clip.");
-        else if (sfx)
-            sfx.PlayOneShot(finaleClip);
+        if (!finaleSoundObject)
+            Debug.LogWarning("[RobotDemoSequence] Finale Sound Object is empty, so there is no sound (the signal for the next script still fires). Assign an object with an AudioSource.");
         else
-            AudioSource.PlayClipAtPoint(finaleClip, root.position);   // no Sfx AudioSource assigned: play it right at the merged object
+        {
+            // Switch it on (and any disabled parents). If the AudioSource has Play On Awake, it starts by itself.
+            for (Transform x = finaleSoundObject.transform; x != null; x = x.parent)
+                if (!x.gameObject.activeSelf) x.gameObject.SetActive(true);
+
+            // If it didn't start by itself, start it now.
+            var src = finaleSoundObject.GetComponentInChildren<AudioSource>(true);
+            if (src && !src.isPlaying) src.Play();
+            else if (!src) Debug.LogWarning("[RobotDemoSequence] Finale Sound Object has no AudioSource, so nothing can play.");
+        }
         Debug.Log("[RobotDemoSequence] Finale sound + On Finale Sound event.");
         onFinaleSound.Invoke();
+
+        // 4. At the very end the floating object moves to the other object's position.
+        if (mergedMoveTarget) yield return MoveMergedToTarget(root);
+    }
+
+    // The merged object glides to the target (position, and optionally rotation and size).
+    IEnumerator MoveMergedToTarget(Transform root)
+    {
+        if (mergedMoveDelay > 0f) yield return new WaitForSeconds(mergedMoveDelay);
+        if (!root || !mergedMoveTarget) yield break;
+
+        // Stop the floating so it doesn't fight the move.
+        if (floatRoutine != null) { StopCoroutine(floatRoutine); floatRoutine = null; }
+
+        Vector3 fromPos = root.position;
+        Quaternion fromRot = root.rotation;
+        Vector3 fromScale = root.localScale;
+        Vector3 toPos = mergedMoveTarget.position;
+        Quaternion toRot = (mergedMoveMatchRotation ? mergedMoveTarget.rotation : fromRot) * Quaternion.Euler(mergedMoveRotation);
+        Vector3 toScale = (mergedMoveMatchScale ? LocalScaleFor(root, mergedMoveTarget.lossyScale) : fromScale) * Mathf.Max(0.01f, mergedMoveSize);
+
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime / Mathf.Max(0.05f, mergedMoveDuration);
+            float e = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t));
+            root.position = Vector3.Lerp(fromPos, toPos, e);
+            root.rotation = Quaternion.Slerp(fromRot, toRot, e);
+            root.localScale = Vector3.Lerp(fromScale, toScale, e);
+            yield return null;
+        }
+        root.position = toPos;
+        root.rotation = toRot;
+        root.localScale = toScale;
+
+        if (mergedKeepFloating) floatRoutine = StartCoroutine(FloatMerged(root));
+        onMergedArrived.Invoke();
     }
 
     // Gentle floating up and down; it builds up from standing still. Runs until ResetSequence().
