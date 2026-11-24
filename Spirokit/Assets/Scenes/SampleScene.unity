@@ -24,7 +24,7 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.4056604, g: 0.4056604, b: 0.4056604, a: 1}
   m_AmbientGroundColor: {r: 1, g: 1, b: 1, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 3
+  m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0, g: 0, b: 0, a: 1}
   m_SkyboxMaterial: {fileID: 2100000, guid: dbdcda1d47363f944b9979fd94156993, type: 2}
   m_HaloStrength: 0.5
@@ -31064,6 +31064,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   - name: OnCuerpo
     waypoints:
     - {fileID: 2055376704}
@@ -31084,6 +31085,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   - name: ToBase
     waypoints:
     - {fileID: 524078096}
@@ -31128,6 +31130,7 @@ MonoBehaviour:
             m_BoolArgument: 0
           m_CallState: 2
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   - name: OnBase
     waypoints:
     - {fileID: 1261373227}
@@ -31148,6 +31151,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   - name: ToBoquilla
     waypoints:
     - {fileID: 407417141}
@@ -31192,6 +31196,7 @@ MonoBehaviour:
             m_BoolArgument: 0
           m_CallState: 2
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   - name: OnBoquilla
     waypoints:
     - {fileID: 59858407}
@@ -31213,6 +31218,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   - name: ToEmbolo
     waypoints:
     - {fileID: 357607424}
@@ -31256,6 +31262,7 @@ MonoBehaviour:
             m_BoolArgument: 0
           m_CallState: 2
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   - name: OnEmbolo
     waypoints:
     - {fileID: 34965338}
@@ -31277,6 +31284,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   - name: ToBomba
     waypoints:
     - {fileID: 640334831}
@@ -31320,6 +31328,7 @@ MonoBehaviour:
             m_BoolArgument: 0
           m_CallState: 2
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   - name: OnBomba
     waypoints:
     - {fileID: 1695470040}
@@ -31341,6 +31350,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   - name: ToPieces
     waypoints:
     - {fileID: 167108129}
@@ -31358,6 +31368,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   - name: OnPieces
     waypoints:
     - {fileID: 1027405210}
@@ -31464,6 +31475,7 @@ MonoBehaviour:
             m_BoolArgument: 0
           m_CallState: 2
     gizmoColor: {r: 0.027450979, g: 0.7087357, b: 1, a: 1}
+    playOnlyOnce: 1
   playOnStart: 0
   startPathIndex: 0
   waypointColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

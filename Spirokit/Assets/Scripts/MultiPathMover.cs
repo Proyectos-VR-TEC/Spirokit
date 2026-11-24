@@ -17,7 +17,7 @@ public class MultiPathMover : MonoBehaviour
     [Range(5, 40)] public int curveResolution = 20;
 
     public int CurrentIndex { get; private set; } = -1;
-
+    readonly HashSet<int> playedPaths = new HashSet<int>();
     Tween currentTween;
     Vector3 startPosition;
     bool started;
@@ -52,6 +52,13 @@ public class MultiPathMover : MonoBehaviour
             Debug.LogWarning($"MultiPathMover: el path '{data.name}' no tiene waypoints");
             return;
         }
+
+        // --- NUEVO ---
+        if (data.playOnlyOnce && playedPaths.Contains(index))
+            return; // ya se reprodujo, se ignora
+
+        playedPaths.Add(index);
+        // --------------
 
         // Corta el path anterior antes de empezar el nuevo
         currentTween?.Kill();

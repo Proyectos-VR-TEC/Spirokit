@@ -30,6 +30,10 @@ public class PathData
 
     [Header("Gizmo")]
     public Color gizmoColor = Color.cyan;
+
+    [Header("Reproducción")]
+    [Tooltip("Si está activo, este path solo puede reproducirse una vez. Las siguientes llamadas se ignoran.")]
+    public bool playOnlyOnce = false;
 }
 
 /*
