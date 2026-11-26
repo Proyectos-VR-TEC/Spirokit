@@ -16,22 +16,38 @@ using UnityEngine.Events;
 /// 3) LIGHTS OUT: when the user clicks it, all the lights glow down to dark, except one specific light (Keep Light)
 ///    that stays on. The ambient light and the sky go dark too, so the scene really becomes dark.
 ///
+/// 4) LIGHTS ON (optional): LightsOn() brings everything back to how it was before going dark
+///    (e.g. BalloonPumpSequence calls it when the balloon pops).
+///
 /// Only real-time lights can be dimmed at runtime: baked lighting stays as baked.
 /// </summary>
 public class LightsOutOnClick : MonoBehaviour
 {
     [Header("Start signal")]
-    [Tooltip("The RobotDemoSequence in the scene. When it plays its finale sound, this script starts waiting for the click.")]
+    [Tooltip("The RobotDemoSequence in the scene. This script waits until its entire sequence has finished.")]
     public RobotDemoSequence sequence;
-    [Tooltip("ON: start waiting when the Sequence's finale sound plays. OFF: only when Begin() is called.")]
+    [Tooltip("ON: start the voice and background sound, and begin listening for the click, only after the previous sequence fully finishes.")]
     public bool startOnFinaleSound = true;
     [Tooltip("ON: clicks count from the very beginning, without waiting for the signal.")]
     public bool listenFromTheStart = false;
+
+    [Header("Audio at startup")]
+    [Tooltip("Voice/audio that starts at the moment Audio To Stop On Touch begins playing, after Begin() is called.")]
+    public AudioClip introVoiceClip;
+    [Tooltip("Optional AudioSource for the intro voice. If empty, one is created automatically.")]
+    public AudioSource introVoiceSource;
+    [Tooltip("If enabled, this background sound is started by Begin(). The intro voice starts when this AudioSource is actually playing, and this sound stops when the user touches the Click Target.")]
+    public bool playBackgroundSoundOnStart = true;
 
     [Header("The object the user clicks")]
     [Tooltip("The third object. It needs a Collider. If it has no XR interactable, an XR Simple Interactable is added automatically. " +
              "Its Interaction Layer Mask must match your ray's.")]
     public GameObject clickTarget;
+    [Tooltip("The sound coming from the phone (the vibration). It stops the moment the user touches (grabs / presses) the Click Target. " +
+             "You can drag the object that plays it here (e.g. RobotDemoSequence's Finale Sound Object).")]
+    public AudioSource audioToStopOnTouch;
+    [Tooltip("ON: the sound also stops when the ray just points at (hovers) the Click Target, not only when it is grabbed / pressed.")]
+    public bool stopOnHover = false;
 
     [Header("Lights")]
     [Tooltip("The ONE light that stays on when everything else goes dark.")]
@@ -46,6 +62,8 @@ public class LightsOutOnClick : MonoBehaviour
     public bool dimAmbientLight = true;
     [Tooltip("Also fade the sky (only works with a skybox material that has an Exposure property).")]
     public bool dimSkybox = true;
+    [Tooltip("Seconds the lights take to come back when LightsOn() is called.")]
+    public float lightsBackDuration = 0.4f;
 
     [Header("Feedback")]
     public AudioSource sfx;
@@ -53,14 +71,28 @@ public class LightsOutOnClick : MonoBehaviour
     public AudioClip clickClip;
     [Tooltip("Fires when the scene has finished going dark.")]
     public UnityEvent onLightsOut;
+    [Tooltip("Fires when the lights have come back (after LightsOn()).")]
+    public UnityEvent onLightsBack;
 
     bool listening;
     bool triggered;
+    bool startupAudioPlayed;
+
+    // How the scene looked before going dark, so LightsOn() can bring it back.
+    List<Light> dimmedLights;
+    float[] dimmedFrom;
+    Color savedAmbColor;
+    float savedAmbIntensity;
+    float savedReflIntensity;
+    Material dimmedSky;
+    float savedSkyExposure;
+    bool isDark;
 
     void Start()
     {
         if (sequence && startOnFinaleSound) sequence.onFinaleSound.AddListener(Begin);
         if (listenFromTheStart) listening = true;
+
         HookClickTarget();
     }
 
@@ -73,7 +105,50 @@ public class LightsOutOnClick : MonoBehaviour
     public void Begin()
     {
         listening = true;
-        Debug.Log("[LightsOutOnClick] Signal received: waiting for the click on the Click Target.");
+        Debug.Log("[LightsOutOnClick] Start signal received; waiting for Audio To Stop On Touch to begin.");
+
+        // Start the background source first. The voice is triggered only once that
+        // AudioSource reports isPlaying, so both sounds begin together.
+        if (playBackgroundSoundOnStart && audioToStopOnTouch)
+        {
+            if (audioToStopOnTouch.clip && !audioToStopOnTouch.isPlaying)
+                audioToStopOnTouch.Play();
+            else if (!audioToStopOnTouch.clip)
+                Debug.LogWarning("[LightsOutOnClick] Audio To Stop On Touch has no AudioClip assigned.");
+        }
+
+        TryPlayIntroVoiceWithBackground();
+    }
+
+    void Update()
+    {
+        // Also handles the case where another component starts Audio To Stop On Touch
+        // a little later than Begin().
+        if (listening && !startupAudioPlayed)
+            TryPlayIntroVoiceWithBackground();
+    }
+
+    void TryPlayIntroVoiceWithBackground()
+    {
+        if (startupAudioPlayed || !audioToStopOnTouch || !audioToStopOnTouch.isPlaying)
+            return;
+
+        startupAudioPlayed = true;
+        if (!introVoiceClip)
+        {
+            Debug.LogWarning("[LightsOutOnClick] Audio To Stop On Touch started, but no Intro Voice Clip is assigned.");
+            return;
+        }
+
+        if (!introVoiceSource)
+        {
+            introVoiceSource = gameObject.AddComponent<AudioSource>();
+            introVoiceSource.playOnAwake = false;
+            introVoiceSource.spatialBlend = 0f; // 2D audio.
+        }
+
+        introVoiceSource.PlayOneShot(introVoiceClip);
+        Debug.Log("[LightsOutOnClick] Intro voice started because Audio To Stop On Touch is playing.");
     }
 
     // Can also be hooked by hand to any event (e.g. the third object's Select Entered). Ignored until Begin() has been called.
@@ -84,12 +159,29 @@ public class LightsOutOnClick : MonoBehaviour
         StartCoroutine(LightsOut());
     }
 
+    // The lights, the ambient light and the sky come back to how they were before going dark.
+    public void LightsOn()
+    {
+        LightsOn(lightsBackDuration);
+    }
+
+    public void LightsOn(float duration)
+    {
+        if (!isDark)
+        {
+            Debug.LogWarning("[LightsOutOnClick] LightsOn() was called but the lights are not out, so there is nothing to bring back.");
+            return;
+        }
+        StartCoroutine(LightsBack(duration));
+    }
+
     // Lets this script be used again.
     public void ResetScript()
     {
         StopAllCoroutines();
         triggered = false;
         listening = listenFromTheStart;
+        startupAudioPlayed = false;
     }
 
     // =====================================================================
@@ -131,32 +223,49 @@ public class LightsOutOnClick : MonoBehaviour
 
         interactable.enabled = true;
 
-        // Subscribe to its 'selectEntered' event (a ray press) without a fixed reference to the XR types.
+        // Subscribe to its events (a ray press / grab, and optionally hover) without a fixed reference to the XR types.
+        if (!Subscribe(interactable, "selectEntered", nameof(OnSelectEvent)))
+            Debug.LogWarning($"[LightsOutOnClick] Couldn't listen to '{clickTarget.name}' automatically. " +
+                             "Hook its Select Entered event to this script's Click() in the Inspector.");
+
+        if (audioToStopOnTouch)
+        {
+            if (!Subscribe(interactable, "selectEntered", nameof(OnTouchEvent)))
+                Debug.LogWarning($"[LightsOutOnClick] Couldn't stop the phone sound automatically. " +
+                                 "Hook the interactable's Select Entered event to this script's StopPhoneAudio() in the Inspector.");
+            if (stopOnHover) Subscribe(interactable, "hoverEntered", nameof(OnTouchEvent));
+        }
+    }
+
+    // Adds one of this script's generic handlers to an XR event (found by name, so it works with any XR Interaction Toolkit version).
+    bool Subscribe(Behaviour interactable, string eventName, string handlerName)
+    {
         try
         {
             object evt = null;
             var flags = BindingFlags.Public | BindingFlags.Instance;
-            var prop = interactable.GetType().GetProperty("selectEntered", flags);
+            var prop = interactable.GetType().GetProperty(eventName, flags);
             if (prop != null) evt = prop.GetValue(interactable, null);
             else
             {
-                var field = interactable.GetType().GetField("selectEntered", flags);
+                var field = interactable.GetType().GetField(eventName, flags);
                 if (field != null) evt = field.GetValue(interactable);
             }
-            if (evt == null) throw new System.Exception("no 'selectEntered' event found");
+            if (evt == null) throw new System.Exception($"no '{eventName}' event found");
 
             var add = evt.GetType().GetMethod("AddListener");
             var actionType = add.GetParameters()[0].ParameterType;          // UnityAction<SelectEnterEventArgs>
             var argType = actionType.GetGenericArguments()[0];
             var handler = typeof(LightsOutOnClick)
-                .GetMethod(nameof(OnSelectEvent), BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetMethod(handlerName, BindingFlags.Instance | BindingFlags.NonPublic)
                 .MakeGenericMethod(argType);
             add.Invoke(evt, new object[] { System.Delegate.CreateDelegate(actionType, this, handler) });
+            return true;
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[LightsOutOnClick] Couldn't listen to '{clickTarget.name}' automatically ({e.Message}). " +
-                             "Hook its Select Entered event to this script's Click() in the Inspector.");
+            Debug.LogWarning($"[LightsOutOnClick] Couldn't subscribe to '{eventName}' on '{clickTarget.name}': {e.Message}");
+            return false;
         }
     }
 
@@ -164,6 +273,18 @@ public class LightsOutOnClick : MonoBehaviour
     void OnSelectEvent<T>(T args)
     {
         Click();
+    }
+
+    // The user touched the phone (grab / press, or hover if Stop On Hover is on).
+    void OnTouchEvent<T>(T args)
+    {
+        StopPhoneAudio();
+    }
+
+    // Stops the phone's sound. Also usable from any event by hand.
+    public void StopPhoneAudio()
+    {
+        if (audioToStopOnTouch && audioToStopOnTouch.isPlaying) audioToStopOnTouch.Stop();
     }
 
     static System.Type FindXRType(string typeName)
@@ -232,6 +353,15 @@ public class LightsOutOnClick : MonoBehaviour
             skyExposure = sky.GetFloat("_Exposure");
         }
 
+        // Remember how everything looked, so LightsOn() can bring it back.
+        dimmedLights = lights;
+        dimmedFrom = from;
+        savedAmbColor = ambColor;
+        savedAmbIntensity = ambIntensity;
+        savedReflIntensity = reflIntensity;
+        dimmedSky = sky;
+        savedSkyExposure = skyExposure;
+
         float t = 0f;
         while (t < 1f)
         {
@@ -262,6 +392,43 @@ public class LightsOutOnClick : MonoBehaviour
         }
         if (sky) sky.SetFloat("_Exposure", 0f);
 
+        isDark = true;
         onLightsOut.Invoke();
+    }
+
+    // =====================================================================
+    //  The lights come back
+    // =====================================================================
+
+    IEnumerator LightsBack(float duration)
+    {
+        isDark = false;
+
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime / Mathf.Max(0.01f, duration);
+            ApplyLightLevel(Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t)));
+            yield return null;
+        }
+        ApplyLightLevel(1f);
+
+        onLightsBack.Invoke();
+    }
+
+    // 0 = dark, 1 = exactly as it was before going dark.
+    void ApplyLightLevel(float k)
+    {
+        if (dimmedLights != null)
+            for (int i = 0; i < dimmedLights.Count; i++)
+                if (dimmedLights[i]) dimmedLights[i].intensity = dimmedFrom[i] * k;
+
+        if (dimAmbientLight)
+        {
+            RenderSettings.ambientIntensity = savedAmbIntensity * k;
+            RenderSettings.ambientLight = savedAmbColor * k;
+            RenderSettings.reflectionIntensity = savedReflIntensity * k;
+        }
+        if (dimmedSky) dimmedSky.SetFloat("_Exposure", savedSkyExposure * k);
     }
 }
