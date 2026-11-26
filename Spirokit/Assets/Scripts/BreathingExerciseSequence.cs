@@ -11,10 +11,11 @@ using UnityEngine.Events;
 ///     and says LOC13.
 ///  3) The guide robot says LOC14.
 ///  4) The whole room goes dark and a feather appears floating in the middle of the room.
-///  5) The guide robot says LOC15.
-///  6) The feather rises (inhale) and falls (exhale) 3 times; the user breathes with it.
-///  7) The guide robot says LOC16.
-///  8) The 4th and last breath: the feather explodes and the light comes back to the room.
+///  5) The guide robot says LOC15, just before the feather rises for the FIRST time.
+///  6) The feather rises (inhale) and falls (exhale) 4 times; the user breathes with it.
+///  7) The guide robot says LOC16 at the top of the FIRST breath, just before the feather goes down for the first time.
+///     The other breaths have no voice.
+///  8) After the 4th and last breath the feather explodes and the light comes back to the room.
 ///  9) The guide robot says LOC17.
 /// 10) The patient robot breathes in/out 4 times, the last one the strongest.
 ///
@@ -42,6 +43,12 @@ public class BreathingExerciseSequence : MonoBehaviour
     [Tooltip("The LightsOutOnClick in the scene. When its lights come back on, this sequence starts.")]
     public LightsOutOnClick lightsOutScript;
     public bool startWhenLightsComeBack = true;
+    [Tooltip("The BalloonPumpSequence. When assigned, this sequence starts when the balloon script has FINISHED (after its last line, LOC11), " +
+             "instead of when the lights come back, so its audio never plays over LOC11.")]
+    public BalloonPumpSequence balloonSequence;
+    [Tooltip("Extra safety: before the first sound, wait until all these AudioSources are silent (e.g. the robot's voice from the previous script). " +
+             "The Balloon Sequence's Robot Voice is checked automatically.")]
+    public AudioSource[] waitUntilSilent;
     [Tooltip("Seconds between the lights coming back and step 1.")]
     public float delayBeforeStart = 1f;
 
@@ -178,7 +185,11 @@ public class BreathingExerciseSequence : MonoBehaviour
 
     [Header("Volume (above 1 = louder than the clip; too high can distort)")]
     [Range(0f, 3f)] public float voiceVolume = 1.6f;
-    [Range(0f, 3f)] public float patientBreathVolume = 2f;
+    [Tooltip("Volume of the patient's breathing sounds. Above 1 amplifies the clip; very high values can distort (crackle).")]
+    [Range(0f, 6f)] public float patientBreathVolume = 3f;
+    [Tooltip("The softer breaths play quieter than the strongest one. This is how loud the softest breath is compared to the strongest " +
+             "(1 = all equally loud, 0.3 = the soft ones are much quieter).")]
+    [Range(0.1f, 1f)] public float softestBreathVolume = 0.75f;
     [Range(0f, 3f)] public float sfxVolume = 1.6f;
 
     [Header("Events")]
@@ -210,11 +221,13 @@ public class BreathingExerciseSequence : MonoBehaviour
 
     void Start()
     {
-        if (lightsOutScript && startWhenLightsComeBack) lightsOutScript.onLightsBack.AddListener(Begin);
+        if (balloonSequence) balloonSequence.onFinished.AddListener(Begin);
+        else if (lightsOutScript && startWhenLightsComeBack) lightsOutScript.onLightsBack.AddListener(Begin);
     }
 
     void OnDestroy()
     {
+        if (balloonSequence) balloonSequence.onFinished.RemoveListener(Begin);
         if (lightsOutScript) lightsOutScript.onLightsBack.RemoveListener(Begin);
     }
 
@@ -248,6 +261,14 @@ public class BreathingExerciseSequence : MonoBehaviour
 
     IEnumerator Run()
     {
+        // The previous script's audio must have finished before anything here sounds.
+        float waited = 0f;
+        while (PreviousAudioPlaying())
+        {
+            if (waited == 0f) Log("Waiting for the previous script's audio to finish...");
+            waited += Time.deltaTime;
+            yield return null;
+        }
         if (delayBeforeStart > 0f) yield return new WaitForSeconds(delayBeforeStart);
         Log("Started.");
         onStarted.Invoke();
@@ -277,22 +298,18 @@ public class BreathingExerciseSequence : MonoBehaviour
         StartCoroutine(FeatherAppear());
         yield return FadeLights(1f, darknessLevel, darkFadeSeconds);
 
-        // 5) LOC15
-        yield return Say(guideVoice, loc15);
-
-        // 6) Three breaths with the feather
-        for (int i = 0; i < 3; i++)
+        // 5-8) Four breaths with the feather.
+        //      LOC15 only before the FIRST rise, LOC16 only before the FIRST fall; the other breaths are silent.
+        const int breaths = 4;
+        for (int i = 0; i < breaths; i++)
         {
-            Log($"Breath {i + 1} of 4.");
-            yield return FeatherBreath();
+            bool first = i == 0, last = i == breaths - 1;
+            Log($"Breath {i + 1} of {breaths}{(last ? " (the last)" : "")}.");
+            if (first) yield return Say(guideVoice, loc15);
+            yield return FeatherBreath(beforeExhale: first ? loc16 : null, skipRest: last);
         }
 
-        // 7) LOC16
-        yield return Say(guideVoice, loc16);
-
-        // 8) The last breath: the feather explodes and the light comes back
-        Log("Breath 4 of 4 (the last).");
-        yield return FeatherBreath(skipRest: true);
+        // The feather explodes and the light comes back
         ExplodeFeather();
         if (pauseAfterExplosion > 0f) yield return new WaitForSeconds(pauseAfterExplosion);
         yield return FadeLights(darknessLevel, 1f, lightsBackSeconds);
@@ -318,19 +335,33 @@ public class BreathingExerciseSequence : MonoBehaviour
     //  Voices and sounds
     // =====================================================================
 
+    bool PreviousAudioPlaying()
+    {
+        if (balloonSequence && balloonSequence.robotVoice && balloonSequence.robotVoice.isPlaying) return true;
+        if (waitUntilSilent != null)
+            foreach (var a in waitUntilSilent)
+                if (a && a.isPlaying) return true;
+        return false;
+    }
+
     IEnumerator Say(AudioSource source, VoiceLine line)
     {
-        Log($"{line.id}");
-        if (line.clip && source)
+        if (!line.clip)
         {
-            source.Stop();
-            source.PlayOneShot(line.clip, voiceVolume);   // PlayOneShot allows a volume above 1
-            yield return new WaitForSeconds(line.clip.length);
+            Debug.LogWarning($"[BreathingExerciseSequence] {line.id}: its Clip field is EMPTY on this component ('{name}'): waiting {secondsIfNoClip}s instead. " +
+                             "Check that the clip is in the 'Loc' field of THIS object in the scene (not a prefab or another copy of the script).");
+            yield return new WaitForSeconds(secondsIfNoClip);
         }
         else
         {
-            Debug.LogWarning($"[BreathingExerciseSequence] {line.id} has no clip or no AudioSource: waiting {secondsIfNoClip}s instead.");
-            yield return new WaitForSeconds(secondsIfNoClip);
+            AudioSource src = Usable(source, line.id);
+            Prepare(line.clip);
+            src.Stop();
+            src.PlayOneShot(line.clip, voiceVolume);   // PlayOneShot allows a volume above 1
+            Log($"{line.id}: playing '{line.clip.name}' ({line.clip.length:0.0}s) on '{src.name}' " +
+                $"(volume {src.volume:0.##}, mute {src.mute}, 3D {src.spatialBlend:0.##}, max distance {src.maxDistance:0.#}).");
+            WarnIfInaudible(src, line.id);
+            yield return new WaitForSeconds(line.clip.length);
         }
         if (line.pauseAfter > 0f) yield return new WaitForSeconds(line.pauseAfter);
     }
@@ -339,8 +370,53 @@ public class BreathingExerciseSequence : MonoBehaviour
     {
         if (!clip) return;
         volume *= sfxVolume;
-        if (sfx) sfx.PlayOneShot(clip, volume);
+        Prepare(clip);
+        if (sfx) Usable(sfx, "SFX").PlayOneShot(clip, volume);
         else AudioSource.PlayClipAtPoint(clip, where, volume);
+    }
+
+    // ---------- Audio helpers: make sure a line can really be heard ----------
+
+    AudioSource backupSource;
+
+    // Returns an AudioSource that can play right now. A disabled AudioSource is switched on; one on an INACTIVE object
+    // (or none at all) is replaced by a backup AudioSource on this object, so the sound is never lost.
+    AudioSource Usable(AudioSource s, string label)
+    {
+        if (s && !s.enabled)
+        {
+            s.enabled = true;
+            Log($"{label}: the AudioSource on '{s.name}' was disabled: switched it on.");
+        }
+        if (s && s.isActiveAndEnabled) return s;
+
+        if (s) Debug.LogWarning($"[BreathingExerciseSequence] {label}: the AudioSource on '{s.name}' is on an INACTIVE object, so it can't play. " +
+                                "Playing it from a backup AudioSource instead.");
+        else Debug.LogWarning($"[BreathingExerciseSequence] {label}: no AudioSource assigned (Guide Voice / Patient Voice). Playing it from a backup AudioSource instead.");
+
+        if (!backupSource)
+        {
+            backupSource = gameObject.AddComponent<AudioSource>();
+            backupSource.playOnAwake = false;
+            backupSource.spatialBlend = 0f;   // 2D: heard the same everywhere
+        }
+        return backupSource;
+    }
+
+    // A clip with 'Preload Audio Data' off isn't loaded yet: load it so it plays right away.
+    static void Prepare(AudioClip clip)
+    {
+        if (clip && clip.loadState != AudioDataLoadState.Loaded) clip.LoadAudioData();
+    }
+
+    void WarnIfInaudible(AudioSource src, string label)
+    {
+        if (src.mute) Debug.LogWarning($"[BreathingExerciseSequence] {label}: the AudioSource on '{src.name}' is MUTED (untick Mute).");
+        if (src.volume <= 0.01f) Debug.LogWarning($"[BreathingExerciseSequence] {label}: the AudioSource on '{src.name}' has Volume 0.");
+        var listener = Camera.main ? Camera.main.transform : null;
+        if (listener && src.spatialBlend > 0.5f && Vector3.Distance(listener.position, src.transform.position) > src.maxDistance)
+            Debug.LogWarning($"[BreathingExerciseSequence] {label}: the user is farther than the AudioSource's Max Distance ({src.maxDistance:0.#} m), " +
+                             "so it can't be heard. Raise Max Distance or set Spatial Blend to 0 (2D).");
     }
 
     // =====================================================================
@@ -723,11 +799,13 @@ public class BreathingExerciseSequence : MonoBehaviour
     }
 
     // One breath: the feather rises (inhale), holds, falls (exhale).
-    IEnumerator FeatherBreath(bool skipRest = false)
+    // beforeExhale: a line the guide says while the feather waits at the top, just before it goes down (null = none).
+    IEnumerator FeatherBreath(VoiceLine beforeExhale = null, bool skipRest = false)
     {
         PlaySfx(inhaleCue, featherBase);
         yield return MoveFeather(0f, breathHeight, inhaleSeconds);
         if (holdSeconds > 0f) yield return new WaitForSeconds(holdSeconds);
+        if (beforeExhale != null) yield return Say(guideVoice, beforeExhale);   // the feather stays up while it plays
 
         PlaySfx(exhaleCue, featherBase);
         yield return MoveFeather(breathHeight, 0f, exhaleSeconds);
@@ -808,8 +886,10 @@ public class BreathingExerciseSequence : MonoBehaviour
     void PlayPatient(AudioClip clip, float volume)
     {
         if (!clip) return;
-        if (patientVoice) patientVoice.PlayOneShot(clip, Mathf.Clamp(volume, 0.3f, 1f) * patientBreathVolume);
-        else PlaySfx(clip, patient ? patient.transform.position : transform.position, volume);
+        Prepare(clip);
+        float v = Mathf.Lerp(softestBreathVolume, 1f, Mathf.Clamp01(volume)) * patientBreathVolume;
+        if (patientVoice) Usable(patientVoice, "Patient breath").PlayOneShot(clip, v);
+        else AudioSource.PlayClipAtPoint(clip, patient ? patient.transform.position : transform.position, v);
     }
 
     IEnumerator Swell(Transform target, Vector3 baseScale, float from, float to, float seconds)

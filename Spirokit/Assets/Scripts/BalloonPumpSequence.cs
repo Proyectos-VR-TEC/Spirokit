@@ -209,6 +209,8 @@ public class BalloonPumpSequence : MonoBehaviour
     [Tooltip("LOC11: said after the balloon popped and the lights are back.")]
     public AudioClip finalClip;
     public float finalClipDelay = 1.5f;
+    [Tooltip("Seconds of silence between two robot lines. A line never starts while another one is still playing: it waits for it to end, then this pause.")]
+    public float pauseBetweenLines = 0.6f;
 
     [Header("Sounds and pop")]
     [Tooltip("Optional: plays the stroke and pop sounds. Empty = they play at the balloon.")]
@@ -230,6 +232,10 @@ public class BalloonPumpSequence : MonoBehaviour
     bool running;
     bool evaluating;        // the user's pumping counts
     bool speaking;
+    float lastLineEnd = -999f;
+    int nextTicket, serving;   // lines take turns: each waits for the ones queued before it
+    bool VoiceBusy => speaking || nextTicket != serving;
+    AudioSource voiceSource;   // robotVoice, or one made on this object (so a line can be cut instead of overlapping)
     bool balloonShown;
 
     float inflation;        // 0 = flat, 1 = full
@@ -278,6 +284,12 @@ public class BalloonPumpSequence : MonoBehaviour
     void Awake()
     {
         if (balloon) balloonFullScale = balloon.localScale;
+        voiceSource = robotVoice;
+        if (!voiceSource)
+        {
+            voiceSource = gameObject.AddComponent<AudioSource>();
+            voiceSource.playOnAwake = false;
+        }
         if (pumpHandle != null) pumpHandle.CaptureHome();
         if (otherObject != null) otherObject.CaptureHome();
 
@@ -315,6 +327,9 @@ public class BalloonPumpSequence : MonoBehaviour
         running = false;
         evaluating = false;
         speaking = false;
+        lastLineEnd = -999f;
+        nextTicket = serving = 0;
+        if (voiceSource) voiceSource.Stop();
         balloonShown = false;
         handleReady = false;
         wasHeld = false;
@@ -408,7 +423,7 @@ public class BalloonPumpSequence : MonoBehaviour
             {
                 ApplyLightColor(Zone.Yellow);
                 idleTimer += Time.deltaTime;
-                if (idleTimer >= idleSeconds && !speaking && Time.time >= nextCorrectionTime)
+                if (idleTimer >= idleSeconds && !VoiceBusy && Time.time >= nextCorrectionTime)
                 {
                     StartCoroutine(SayCorrection(tooSlowClip, "LOC10 (too slow)"));
                     idleTimer = 0f;
@@ -483,7 +498,7 @@ public class BalloonPumpSequence : MonoBehaviour
             else
             {
                 // Failed: the robot says what went wrong and the balloon goes back to where the phase started.
-                if (complete && !speaking)
+                if (complete && !VoiceBusy)
                 {
                     bool tooFast = avgSpeed > maxSpeed;
                     StartCoroutine(SayCorrection(tooFast ? tooFastClip : tooSlowClip, tooFast ? "LOC9 (too fast)" : "LOC10 (too slow)"));
@@ -874,10 +889,18 @@ public class BalloonPumpSequence : MonoBehaviour
             Debug.LogWarning($"[BalloonPumpSequence] No clip assigned for {label}, skipping the line.");
             yield break;
         }
+        // One line at a time, in order: wait for the lines queued before this one, then a short pause.
+        int ticket = nextTicket++;
+        while (serving != ticket) yield return null;
+        float wait = lastLineEnd + pauseBetweenLines - Time.time;
+        if (wait > 0f) yield return new WaitForSeconds(wait);
+
         speaking = true;
         PlayVoice(clip);
         yield return new WaitForSeconds(clip.length);
         speaking = false;
+        lastLineEnd = Time.time;
+        serving++;
     }
 
     // A correction (LOC9 / LOC10): same, and then a pause before the next one.
@@ -889,8 +912,10 @@ public class BalloonPumpSequence : MonoBehaviour
 
     void PlayVoice(AudioClip clip)
     {
-        if (robotVoice) robotVoice.PlayOneShot(clip);
-        else AudioSource.PlayClipAtPoint(clip, transform.position);
+        // Anything still playing on the voice is cut first, so two lines never sound together.
+        voiceSource.Stop();
+        voiceSource.clip = clip;
+        voiceSource.Play();
     }
 
     void PlayAt(AudioClip clip, Vector3 pos)

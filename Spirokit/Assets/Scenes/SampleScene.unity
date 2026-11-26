@@ -3471,33 +3471,35 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BreathingExerciseSequence
   lightsOutScript: {fileID: 948665515}
   startWhenLightsComeBack: 1
+  balloonSequence: {fileID: 1690042500}
+  waitUntilSilent: []
   delayBeforeStart: 1
-  guideVoice: {fileID: 0}
-  patientVoice: {fileID: 0}
+  guideVoice: {fileID: 2129323847}
+  patientVoice: {fileID: 1926403736}
   secondsIfNoClip: 3
   loc12:
     id: LOC12
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 72fe2f6ac184a7145bbb2fe147aef288, type: 3}
     pauseAfter: 0.5
   loc13:
     id: LOC13
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 5e38f39e42932a14aa88163f551cf2d2, type: 3}
     pauseAfter: 0.5
   loc14:
     id: LOC14
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: c4e131cad0a6d55448e58cdce3217e79, type: 3}
     pauseAfter: 0.5
   loc15:
     id: LOC15
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 535e8f086d5fe944bbc88dc5e130c051, type: 3}
     pauseAfter: 0.5
   loc16:
     id: LOC16
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 6518e113a7c96b24c9258d6b8c670e39, type: 3}
     pauseAfter: 0.5
   loc17:
     id: LOC17
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 01a9a7dcc5821234aa23f8be388440a4, type: 3}
     pauseAfter: 0.5
   sfx: {fileID: 0}
   arrivalClip: {fileID: 0}
@@ -3568,6 +3570,7 @@ MonoBehaviour:
   patientBreathTrigger: 
   voiceVolume: 1.6
   patientBreathVolume: 3
+  softestBreathVolume: 0.75
   sfxVolume: 1.6
   onStarted:
     m_PersistentCalls:
@@ -4286,7 +4289,7 @@ MonoBehaviour:
   mergedBobAmount: 0.03
   mergedBobSpeed: 1
   mergedBobEaseIn: 2
-  floatBeforeSound: 3
+  floatBeforeSound: 1
   finaleSoundObject: {fileID: 1446519489}
   onFinaleSound:
     m_PersistentCalls:
@@ -4310,7 +4313,7 @@ MonoBehaviour:
   snapFlashDuration: 0.4
   sfx: {fileID: 0}
   grabClip: {fileID: 0}
-  snapClip: {fileID: 8300000, guid: 16fba6d30ed741d4a9fdd6e79ee2f3ac, type: 3}
+  snapClip: {fileID: 0}
   onSequenceFinished:
     m_PersistentCalls:
       m_Calls: []
@@ -16606,7 +16609,7 @@ MonoBehaviour:
   startOnFinaleSound: 1
   listenFromTheStart: 0
   introVoiceClip: {fileID: 8300000, guid: 0cf2c8fd716c78d4a9edd2fccda7680f, type: 3}
-  introVoiceSource: {fileID: 0}
+  introVoiceSource: {fileID: 2129323847}
   playBackgroundSoundOnStart: 1
   clickTarget: {fileID: 1083838241}
   audioToStopOnTouch: {fileID: 1446519490}
@@ -26732,7 +26735,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -2769979173508513528, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 230736606}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2129323847}
   m_SourcePrefab: {fileID: 100100000, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
 --- !u!4 &1397161121 stripped
 Transform:
@@ -30533,25 +30539,26 @@ MonoBehaviour:
   robotVoice: {fileID: 0}
   phases:
   - name: LOC6 - fast
-    introClip: {fileID: 0}
+    introClip: {fileID: 8300000, guid: 15fbd641e044a404ba8e39357913a63a, type: 3}
     minDuration: 0.6
     maxDuration: 1
     endInflation: 0.35
   - name: LOC7 - slower
-    introClip: {fileID: 0}
+    introClip: {fileID: 8300000, guid: 3474270061229e646a6a2642454e065a, type: 3}
     minDuration: 0.6
     maxDuration: 1
     endInflation: 0.7
   - name: LOC8 - slowest
-    introClip: {fileID: 0}
+    introClip: {fileID: 8300000, guid: 877b0fdb3950f3246b2c9e83701ebabd, type: 3}
     minDuration: 0.6
     maxDuration: 1
     endInflation: 1
-  tooFastClip: {fileID: 0}
-  tooSlowClip: {fileID: 0}
+  tooFastClip: {fileID: 8300000, guid: 50092a06c8dfec649b7859531091ac43, type: 3}
+  tooSlowClip: {fileID: 8300000, guid: 6b645316e6fba324190d45af9039c219, type: 3}
   correctionCooldown: 6
-  finalClip: {fileID: 0}
+  finalClip: {fileID: 8300000, guid: 51d639bc1f5cd0d4091b0d066d1d339d, type: 3}
   finalClipDelay: 1.5
+  pauseBetweenLines: 0.6
   sfx: {fileID: 0}
   pumpClip: {fileID: 0}
   popClip: {fileID: 8300000, guid: 4037c0c070b5e9f4bbc32a67a2bbbe0d, type: 3}
@@ -49428,18 +49435,20 @@ MonoBehaviour:
   breathingSequence: {fileID: 246643288}
   startWhenBreathingEnds: 1
   delayBeforeStart: 1
-  guideVoice: {fileID: 0}
-  loc18: {fileID: 0}
+  guideVoice: {fileID: 2129323847}
+  loc18: {fileID: 8300000, guid: bb694fe240102094f92fdedd50aa4aa8, type: 3}
   voiceVolume: 1.6
   secondsIfNoClip: 3
   highlightDuringLine: 0
-  mouthpiece:
-    name: Mouthpiece
-    item: {fileID: 305186416}
-    target: {fileID: 620446889}
-    targetMarker: {fileID: 0}
-    highlightLight: {fileID: 0}
-  lockUntilStep: 1
+  mouthpiece: {fileID: 1452754412}
+  grabMergedObject: 1
+  robotDemo: {fileID: 353859892}
+  target: {fileID: 620446889}
+  targetRotation: {x: 0, y: 180, z: 90}
+  targetOffset: {x: 0, y: 0, z: 0}
+  liveAdjust: 1
+  targetMarker: {fileID: 0}
+  highlightLight: {fileID: 0}
   autoLight: 1
   lightColor: {r: 1, g: 0.85, b: 0.55, a: 1}
   lightIntensity: 2.5
@@ -49465,13 +49474,26 @@ MonoBehaviour:
   sfx: {fileID: 0}
   allPlacedClip: {fileID: 0}
   sfxVolume: 1.6
+  secondsBeforeLine: 3
+  afterPlacedLine: {fileID: 8300000, guid: 10de8a8ba14e9614f88e87b21471d9b9, type: 3}
+  pauseAfterLine: 0.5
+  lightsOffSeconds: 2.5
+  lightsOffLevel: 0
+  lightsToKeep: []
+  dimAmbientLight: 1
+  dimSkybox: 1
+  lightsOffLine: {fileID: 8300000, guid: 65dd2edbc3d3eee4e93094051cbe6b9d, type: 3}
+  pauseBeforeLastLine: 0.5
   onStarted:
     m_PersistentCalls:
       m_Calls: []
-  onPiecePlaced:
+  onAllPlaced:
     m_PersistentCalls:
       m_Calls: []
-  onAllPlaced:
+  onLightsOff:
+    m_PersistentCalls:
+      m_Calls: []
+  onFinished:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1 &1894091299
@@ -49972,7 +49994,10 @@ PrefabInstance:
     - {fileID: 65702495048144492, guid: 12b0d272221de1748aa882628b4c3284, type: 3}
     - {fileID: -8700617353114198275, guid: 12b0d272221de1748aa882628b4c3284, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 12b0d272221de1748aa882628b4c3284, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1926403736}
   m_SourcePrefab: {fileID: 100100000, guid: 12b0d272221de1748aa882628b4c3284, type: 3}
 --- !u!4 &1926403734 stripped
 Transform:
@@ -49984,6 +50009,103 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 12b0d272221de1748aa882628b4c3284, type: 3}
   m_PrefabInstance: {fileID: 1926403733}
   m_PrefabAsset: {fileID: 0}
+--- !u!82 &1926403736
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1926403735}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1941775764
 GameObject:
   m_ObjectHideFlags: 0
@@ -52747,6 +52869,108 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2115473508}
   m_CullTransparentMesh: 1
+--- !u!1 &2129323846 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ee6b61b69bbb6e24088262e2e8b4f23b, type: 3}
+  m_PrefabInstance: {fileID: 1397161120}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &2129323847
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2129323846}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &2135562540
 PrefabInstance:
   m_ObjectHideFlags: 0
