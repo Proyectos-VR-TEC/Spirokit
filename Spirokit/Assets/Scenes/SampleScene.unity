@@ -4198,6 +4198,7 @@ MonoBehaviour:
   chain: {fileID: 1903602973}
   autoStartAfterChain: 1
   beginWhenActivated: 0
+  introVoiceClip: {fileID: 8300000, guid: 0514fb7ab2f3126489c924f599eebb07, type: 3}
   startDelay: 1.5
   steps:
   - name: Boquilla
@@ -4309,7 +4310,7 @@ MonoBehaviour:
   snapFlashDuration: 0.4
   sfx: {fileID: 0}
   grabClip: {fileID: 0}
-  snapClip: {fileID: 0}
+  snapClip: {fileID: 8300000, guid: 16fba6d30ed741d4a9fdd6e79ee2f3ac, type: 3}
   onSequenceFinished:
     m_PersistentCalls:
       m_Calls: []
@@ -11581,7 +11582,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d69fabf7dfa95264ea571e3b9c4f6379, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.22052
+      value: -0.01
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d69fabf7dfa95264ea571e3b9c4f6379, type: 3}
       propertyPath: m_LocalPosition.z
@@ -16604,6 +16605,9 @@ MonoBehaviour:
   sequence: {fileID: 353859892}
   startOnFinaleSound: 1
   listenFromTheStart: 0
+  introVoiceClip: {fileID: 8300000, guid: 0cf2c8fd716c78d4a9edd2fccda7680f, type: 3}
+  introVoiceSource: {fileID: 0}
+  playBackgroundSoundOnStart: 1
   clickTarget: {fileID: 1083838241}
   audioToStopOnTouch: {fileID: 1446519490}
   stopOnHover: 0
@@ -49607,7 +49611,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SparkleTrailChain
   audioSource: {fileID: 1171193548}
-  clip: {fileID: 8300000, guid: 16fba6d30ed741d4a9fdd6e79ee2f3ac, type: 3}
+  clip: {fileID: 8300000, guid: c39205bb9ed18724d97e8f04ec6dae0a, type: 3}
+  secondIntroClip: {fileID: 8300000, guid: 1d34055a7a5cb6542bfceab22aa51845, type: 3}
   sparkle: {fileID: 0}
   startPoint: {fileID: 0}
   travelDuration: 1
@@ -49645,6 +49650,7 @@ MonoBehaviour:
   - name: Spirokit
     target: {fileID: 1204997414}
     light: {fileID: 512895728}
+    touchAudio: {fileID: 0}
     maxIntensity: 20
     moveSpot: {fileID: 741426843}
     startHidden: 0
@@ -49666,6 +49672,7 @@ MonoBehaviour:
   - name: BaseSpiro
     target: {fileID: 2135562541}
     light: {fileID: 811402880}
+    touchAudio: {fileID: 0}
     maxIntensity: 20
     moveSpot: {fileID: 1078571103}
     startHidden: 0
@@ -49687,6 +49694,7 @@ MonoBehaviour:
   - name: BoquillaSpiro
     target: {fileID: 1452754412}
     light: {fileID: 986154865}
+    touchAudio: {fileID: 0}
     maxIntensity: 20
     moveSpot: {fileID: 1257826124}
     startHidden: 0
@@ -49708,6 +49716,7 @@ MonoBehaviour:
   - name: EmboloSpiro
     target: {fileID: 873550018}
     light: {fileID: 805558982}
+    touchAudio: {fileID: 0}
     maxIntensity: 20
     moveSpot: {fileID: 1423092004}
     startHidden: 0
@@ -49729,6 +49738,7 @@ MonoBehaviour:
   - name: BombaSpiro
     target: {fileID: 125637114}
     light: {fileID: 61824561}
+    touchAudio: {fileID: 0}
     maxIntensity: 20
     moveSpot: {fileID: 488674368}
     startHidden: 0

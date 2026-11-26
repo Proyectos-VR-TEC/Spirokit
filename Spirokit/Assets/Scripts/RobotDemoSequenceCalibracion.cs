@@ -91,6 +91,9 @@ public class RobotDemoSequence : MonoBehaviour
     [Tooltip("Tick this if you keep this object DISABLED and enable it later (e.g. from the chain's On Chain Finished event): " +
              "the demo starts as soon as the object is enabled.")]
     public bool beginWhenActivated = false;
+    [Tooltip("Played immediately when this sequence begins, before the first demo ghost appears.")]
+    public AudioClip introVoiceClip;
+    [Tooltip("Seconds between starting the intro voice and showing the first demo ghost. The voice can continue while the ghosts appear.")]
     public float startDelay = 1.5f;
 
     [Header("Steps (in order)")]
@@ -278,6 +281,12 @@ public class RobotDemoSequence : MonoBehaviour
 
     void Awake()
     {
+        // Ensure PlayClip always has an AudioSource, even if Sfx was not
+        // assigned in the Inspector.
+        if (!sfx) sfx = GetComponent<AudioSource>();
+        if (!sfx) sfx = gameObject.AddComponent<AudioSource>();
+        if (sfx) sfx.playOnAwake = false;
+
         var h = new GameObject("DemoCopyHolder (inactive)");
         h.SetActive(false);
         h.transform.SetParent(transform, false);
@@ -432,6 +441,9 @@ public class RobotDemoSequence : MonoBehaviour
 
     IEnumerator Run()
     {
+        // Start the introductory voice immediately. The delay below gives it a
+        // short head start; if it is still playing, it continues as the ghosts appear.
+        PlayClip(introVoiceClip);
         if (startDelay > 0f) yield return new WaitForSeconds(startDelay);
 
         for (int i = 0; i < steps.Length; i++)
@@ -1199,6 +1211,19 @@ public class RobotDemoSequence : MonoBehaviour
 
     void PlayClip(AudioClip c)
     {
-        if (sfx && c) sfx.PlayOneShot(c);
+        if (!c)
+        {
+            Debug.LogWarning("[RobotDemoSequence] Tried to play an audio clip, but the clip is not assigned.", this);
+            return;
+        }
+
+        if (!sfx)
+        {
+            sfx = GetComponent<AudioSource>();
+            if (!sfx) sfx = gameObject.AddComponent<AudioSource>();
+            sfx.playOnAwake = false;
+        }
+
+        sfx.PlayOneShot(c);
     }
 }

@@ -24,12 +24,20 @@ using UnityEngine.Events;
 public class LightsOutOnClick : MonoBehaviour
 {
     [Header("Start signal")]
-    [Tooltip("The RobotDemoSequence in the scene. When it plays its finale sound, this script starts waiting for the click.")]
+    [Tooltip("The RobotDemoSequence in the scene. This script waits until its entire sequence has finished.")]
     public RobotDemoSequence sequence;
-    [Tooltip("ON: start waiting when the Sequence's finale sound plays. OFF: only when Begin() is called.")]
+    [Tooltip("ON: start the voice and background sound, and begin listening for the click, only after the previous sequence fully finishes.")]
     public bool startOnFinaleSound = true;
     [Tooltip("ON: clicks count from the very beginning, without waiting for the signal.")]
     public bool listenFromTheStart = false;
+
+    [Header("Audio at startup")]
+    [Tooltip("Voice/audio that starts at the moment Audio To Stop On Touch begins playing, after Begin() is called.")]
+    public AudioClip introVoiceClip;
+    [Tooltip("Optional AudioSource for the intro voice. If empty, one is created automatically.")]
+    public AudioSource introVoiceSource;
+    [Tooltip("If enabled, this background sound is started by Begin(). The intro voice starts when this AudioSource is actually playing, and this sound stops when the user touches the Click Target.")]
+    public bool playBackgroundSoundOnStart = true;
 
     [Header("The object the user clicks")]
     [Tooltip("The third object. It needs a Collider. If it has no XR interactable, an XR Simple Interactable is added automatically. " +
@@ -68,6 +76,7 @@ public class LightsOutOnClick : MonoBehaviour
 
     bool listening;
     bool triggered;
+    bool startupAudioPlayed;
 
     // How the scene looked before going dark, so LightsOn() can bring it back.
     List<Light> dimmedLights;
@@ -83,6 +92,7 @@ public class LightsOutOnClick : MonoBehaviour
     {
         if (sequence && startOnFinaleSound) sequence.onFinaleSound.AddListener(Begin);
         if (listenFromTheStart) listening = true;
+
         HookClickTarget();
     }
 
@@ -95,7 +105,50 @@ public class LightsOutOnClick : MonoBehaviour
     public void Begin()
     {
         listening = true;
-        Debug.Log("[LightsOutOnClick] Signal received: waiting for the click on the Click Target.");
+        Debug.Log("[LightsOutOnClick] Start signal received; waiting for Audio To Stop On Touch to begin.");
+
+        // Start the background source first. The voice is triggered only once that
+        // AudioSource reports isPlaying, so both sounds begin together.
+        if (playBackgroundSoundOnStart && audioToStopOnTouch)
+        {
+            if (audioToStopOnTouch.clip && !audioToStopOnTouch.isPlaying)
+                audioToStopOnTouch.Play();
+            else if (!audioToStopOnTouch.clip)
+                Debug.LogWarning("[LightsOutOnClick] Audio To Stop On Touch has no AudioClip assigned.");
+        }
+
+        TryPlayIntroVoiceWithBackground();
+    }
+
+    void Update()
+    {
+        // Also handles the case where another component starts Audio To Stop On Touch
+        // a little later than Begin().
+        if (listening && !startupAudioPlayed)
+            TryPlayIntroVoiceWithBackground();
+    }
+
+    void TryPlayIntroVoiceWithBackground()
+    {
+        if (startupAudioPlayed || !audioToStopOnTouch || !audioToStopOnTouch.isPlaying)
+            return;
+
+        startupAudioPlayed = true;
+        if (!introVoiceClip)
+        {
+            Debug.LogWarning("[LightsOutOnClick] Audio To Stop On Touch started, but no Intro Voice Clip is assigned.");
+            return;
+        }
+
+        if (!introVoiceSource)
+        {
+            introVoiceSource = gameObject.AddComponent<AudioSource>();
+            introVoiceSource.playOnAwake = false;
+            introVoiceSource.spatialBlend = 0f; // 2D audio.
+        }
+
+        introVoiceSource.PlayOneShot(introVoiceClip);
+        Debug.Log("[LightsOutOnClick] Intro voice started because Audio To Stop On Touch is playing.");
     }
 
     // Can also be hooked by hand to any event (e.g. the third object's Select Entered). Ignored until Begin() has been called.
@@ -128,6 +181,7 @@ public class LightsOutOnClick : MonoBehaviour
         StopAllCoroutines();
         triggered = false;
         listening = listenFromTheStart;
+        startupAudioPlayed = false;
     }
 
     // =====================================================================

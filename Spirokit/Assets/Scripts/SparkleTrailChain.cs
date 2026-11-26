@@ -19,6 +19,8 @@ public class SparkleTrailChain : MonoBehaviour
         public Transform target;
         [Tooltip("Light that glows up while the sparkle travels to this station.")]
         public Light light;
+        [Tooltip("Audio played when the user touches this station.")]
+        public AudioClip touchAudio;
         public float maxIntensity = 50f;
         [Tooltip("Where this station's object moves to when touched. Leave empty to not move.")]
         public Transform moveSpot;
@@ -72,7 +74,8 @@ public class SparkleTrailChain : MonoBehaviour
 
     [Header("Audio (plays when the rise ends)")]
     public AudioSource audioSource;
-    public AudioClip clip;                 // optional: overrides the AudioSource clip
+    public AudioClip clip;                 // First intro audio; optional override for AudioSource.clip
+    public AudioClip secondIntroClip;      // Second intro audio; stations remain inactive until it finishes
 
     [Header("Sparkle trail")]
     public ParticleSystem sparkle;         // Play On Awake OFF, Simulation Space = World
@@ -243,13 +246,23 @@ public class SparkleTrailChain : MonoBehaviour
                 if (roomLights[i])
                     StartCoroutine(FadeTo(roomLights[i], roomOriginalIntensities[i] * roomDimLevel, roomDimDuration));
 
+        // Play both intro audios sequentially. No station is activated before
+        // the second intro audio has completely finished.
         if (audioSource)
         {
             if (clip) audioSource.clip = clip;
             if (audioSource.clip)
             {
                 audioSource.Play();
-                yield return null;                       // let isPlaying become true
+                yield return null; // let isPlaying become true
+                while (audioSource.isPlaying) yield return null;
+            }
+
+            if (secondIntroClip)
+            {
+                audioSource.clip = secondIntroClip;
+                audioSource.Play();
+                yield return null; // let isPlaying become true
                 while (audioSource.isPlaying) yield return null;
             }
         }
@@ -275,6 +288,16 @@ public class SparkleTrailChain : MonoBehaviour
         activePs = null;
 
         Station s = stations[currentIndex];
+
+        // Play this station's audio and wait for it to finish before moving on.
+        if (audioSource && s.touchAudio)
+        {
+            audioSource.Stop();
+            audioSource.clip = s.touchAudio;
+            audioSource.Play();
+            yield return null; // let isPlaying become true
+            while (audioSource.isPlaying) yield return null;
+        }
 
         // The touched station moves to its spot, resizing and rotating on the way if requested.
         bool doMove = s.moveSpot != null;
