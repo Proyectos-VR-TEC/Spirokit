@@ -3548,7 +3548,7 @@ MonoBehaviour:
   explosionClip: {fileID: 8300000, guid: 16fba6d30ed741d4a9fdd6e79ee2f3ac, type: 3}
   pauseAfterExplosion: 0.3
   closeStandPoint: {fileID: 0}
-  closeDistanceFromUser: 1.5
+  closeDistanceFromUser: 2
   approachSeconds: 3
   pauseBeforeBreathing: 0.5
   patientBreathTarget: {fileID: 1926403734}
@@ -11577,7 +11577,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d69fabf7dfa95264ea571e3b9c4f6379, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.56695
+      value: -0.56694984
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d69fabf7dfa95264ea571e3b9c4f6379, type: 3}
       propertyPath: m_LocalPosition.y
@@ -11593,15 +11593,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d69fabf7dfa95264ea571e3b9c4f6379, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d69fabf7dfa95264ea571e3b9c4f6379, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d69fabf7dfa95264ea571e3b9c4f6379, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d69fabf7dfa95264ea571e3b9c4f6379, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -12194,6 +12194,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1373153107}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &620446889 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -4025470130324596155, guid: 12b0d272221de1748aa882628b4c3284, type: 3}
+  m_PrefabInstance: {fileID: 1926403733}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &624858285
 GameObject:
   m_ObjectHideFlags: 0
@@ -49284,6 +49289,187 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1462484776}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1893452586
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1893452587}
+  - component: {fileID: 1893452588}
+  - component: {fileID: 1893452589}
+  m_Layer: 0
+  m_Name: SimulacionPruebaPaciente
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1893452587
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1893452586}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.31066, y: 0.01724, z: -1.04976}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1893452588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1893452586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca1ec1b5c14d51140b848c03dce39028, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NasalClipMouthpieceSequence
+  breathingSequence: {fileID: 246643288}
+  startWhenBreathingEnds: 1
+  delayBeforeStart: 1
+  guideVoice: {fileID: 0}
+  loc18: {fileID: 0}
+  voiceVolume: 1.6
+  secondsIfNoClip: 3
+  highlightDuringLine: 0
+  nasalClip:
+    name: Nasal clip
+    item: {fileID: 0}
+    target: {fileID: 0}
+    targetMarker: {fileID: 0}
+    highlightLight: {fileID: 0}
+  mouthpiece:
+    name: Mouthpiece
+    item: {fileID: 0}
+    target: {fileID: 0}
+    targetMarker: {fileID: 0}
+    highlightLight: {fileID: 0}
+  lockUntilStep: 1
+  autoLight: 1
+  lightColor:
+    r: 1
+    g: 0.85
+    b: 0.55
+    a: 1
+  lightIntensity: 2.5
+  lightRange: 0.6
+  lightHeight: 0.15
+  glow: 1
+  glowColor:
+    r: 1.2
+    g: 1.0200001
+    b: 0.66
+    a: 1.2
+  pulseSpeed: 1.2
+  pulseMin: 0.4
+  highlightAppearSeconds: 1
+  keepHighlightWhileHeld: 0
+  autoGhost: 1
+  ghostColor:
+    r: 0.6
+    g: 0.9
+    b: 1
+    a: 0.35
+  ghostOnlyWhileHeld: 0
+  snapDistance: 0.12
+  snapWhileHeld: 1
+  snapSeconds: 0.3
+  disableCollidersWhenPlaced: 1
+  placedClip: {fileID: 0}
+  returnIfDropped: 1
+  returnDelay: 1
+  returnSeconds: 0.8
+  sfx: {fileID: 0}
+  allPlacedClip: {fileID: 0}
+  sfxVolume: 1.6
+  onStarted:
+    m_PersistentCalls:
+      m_Calls: []
+    m_CallsDirty: 1
+  onPiecePlaced:
+    m_PersistentCalls:
+      m_Calls: []
+    m_CallsDirty: 1
+  onAllPlaced:
+    m_PersistentCalls:
+      m_Calls: []
+    m_CallsDirty: 1
+  running: 0
+  active: 0
+  highlighting: 0
+  highlightLevel: 0
+  pieces: []
+--- !u!114 &1893452589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1893452586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a3dffe0bfe32d2439ba34c394ffeb0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MouthpieceSequence
+  breathingSequence: {fileID: 246643288}
+  startWhenBreathingEnds: 1
+  delayBeforeStart: 1
+  guideVoice: {fileID: 0}
+  loc18: {fileID: 0}
+  voiceVolume: 1.6
+  secondsIfNoClip: 3
+  highlightDuringLine: 0
+  mouthpiece:
+    name: Mouthpiece
+    item: {fileID: 305186416}
+    target: {fileID: 620446889}
+    targetMarker: {fileID: 0}
+    highlightLight: {fileID: 0}
+  lockUntilStep: 1
+  autoLight: 1
+  lightColor: {r: 1, g: 0.85, b: 0.55, a: 1}
+  lightIntensity: 2.5
+  lightRange: 0.6
+  lightHeight: 0.15
+  glow: 1
+  glowColor: {r: 1.2, g: 1.0200001, b: 0.66, a: 1.2}
+  pulseSpeed: 1.2
+  pulseMin: 0.4
+  highlightAppearSeconds: 1
+  keepHighlightWhileHeld: 0
+  autoGhost: 1
+  ghostColor: {r: 0.6, g: 0.9, b: 1, a: 0.35}
+  ghostOnlyWhileHeld: 0
+  snapDistance: 0.12
+  snapWhileHeld: 1
+  snapSeconds: 0.3
+  disableCollidersWhenPlaced: 1
+  placedClip: {fileID: 0}
+  returnIfDropped: 1
+  returnDelay: 1
+  returnSeconds: 0.8
+  sfx: {fileID: 0}
+  allPlacedClip: {fileID: 0}
+  sfxVolume: 1.6
+  onStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  onPiecePlaced:
+    m_PersistentCalls:
+      m_Calls: []
+  onAllPlaced:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1894091299
 GameObject:
   m_ObjectHideFlags: 0
@@ -54797,4 +54983,5 @@ SceneRoots:
   - {fileID: 353859893}
   - {fileID: 948665516}
   - {fileID: 246643289}
+  - {fileID: 1893452587}
   - {fileID: 540894563}
